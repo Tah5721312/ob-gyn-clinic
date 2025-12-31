@@ -4,27 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Phone, MapPin, Shield, Baby, MoreVertical, Eye, Calendar, Stethoscope } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-
-interface Patient {
-  id: number;
-  nationalId: string;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  phone: string;
-  age: number;
-  city: string | null;
-  hasInsurance: boolean;
-  isPregnant: boolean;
-  isActive: boolean;
-}
+import { PatientListItem, PatientListResponse } from "@/lib/patients";
 
 interface PatientListProps {
-  initialPatients?: Patient[];
+  initialPatients?: PatientListItem[];
 }
 
 export function PatientList({ initialPatients = [] }: PatientListProps) {
-  const [patients, setPatients] = useState<Patient[]>(initialPatients);
+  const [patients, setPatients] = useState<PatientListItem[]>(initialPatients);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState({
@@ -69,7 +56,7 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
         if (filters.city) params.append("city", filters.city);
 
         const response = await fetch(`/api/patients?${params.toString()}`);
-        const result = await response.json();
+        const result: PatientListResponse = await response.json();
 
         if (result.success) {
           setPatients(result.data);
