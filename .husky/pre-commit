@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+
+# أزل أو علّق السطر التالي:
+# npx lint-staged
+
+# أو استبدله بـ:
+echo "Pre-commit check disabled"

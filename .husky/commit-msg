@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Commitlint disabled - uncomment the line below to enable it
+# npx --no-install commitlint --edit "$1"
+echo "Commitlint check disabled"
