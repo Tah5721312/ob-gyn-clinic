@@ -126,11 +126,11 @@ export async function authenticateSystemUser(
  * 
  * Redirect Logic:
  * 1. إذا mustChangePassword = true → /change-password
- * 2. إذا userType = "DOCTOR" → /dashboard
- * 3. إذا role = "RECEPTION" → /appointments
- * 4. إذا role = "ACCOUNTANT" → /billing
- * 5. إذا role = "NURSE" → /patients
- * 6. إذا userType = "ADMIN" → /dashboard
+ * 2. Doctor → /dashboard
+ * 3. Reception → /appointments
+ * 4. Nurse → /patients
+ * 5. Accountant → /billing
+ * 6. Admin → /dashboard
  * 7. افتراضي → /dashboard
  */
 export function getRedirectUrl(

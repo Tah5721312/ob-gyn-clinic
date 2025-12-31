@@ -14,10 +14,12 @@ import { UserType, RoleCode } from "@/types/auth";
  * 
  * Redirect Logic (بالترتيب):
  * 1. إذا mustChangePassword = true → /change-password
- * 2. إذا userType = "DOCTOR" → /dashboard
- * 3. إذا role = "RECEPTION" → /appointments
- * 4. إذا role = "ACCOUNTANT" → /billing
- * 5. افتراضي → /dashboard
+ * 2. Doctor → /dashboard
+ * 3. Reception → /appointments
+ * 4. Nurse → /patients
+ * 5. Accountant → /billing
+ * 6. Admin → /dashboard
+ * 7. افتراضي → /dashboard
  */
 export function getRedirectUrl(
   userType: string,
@@ -54,7 +56,18 @@ export function getRedirectUrl(
       return "/appointments";
     }
 
-    // ACCOUNTANT → /billing
+    // Nurse → /patients
+    if (
+      normalizedRole === RoleCode.NURSE ||
+      normalizedRole === "NURSE" ||
+      normalizedRole === "ممرضة" ||
+      roleName === "ممرضة" ||
+      roleName === "Nurse"
+    ) {
+      return "/patients";
+    }
+
+    // Accountant → /billing
     if (
       normalizedRole === RoleCode.ACCOUNTANT ||
       normalizedRole === "ACCOUNTANT" ||
