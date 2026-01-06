@@ -23,11 +23,7 @@ function buildWhereClause(filters: AppointmentFilters) {
   }
 
   if (filters.appointmentType) {
-    where.appointmentType = filters.appointmentType;
-  }
-
-  if (filters.priority) {
-    where.priority = filters.priority;
+    where.visitReason = filters.appointmentType;
   }
 
   if (filters.search) {
@@ -91,11 +87,11 @@ export async function getAppointmentsList(
     doctorName: `${apt.doctor.firstName} ${apt.doctor.lastName}`,
     appointmentDate: apt.appointmentDate,
     appointmentTime: apt.appointmentTime,
-    appointmentType: apt.appointmentType,
+    appointmentType: apt.visitReason || "", // تحويل visitReason إلى appointmentType للواجهة
     status: apt.status,
-    priority: apt.priority,
+    priority: "", // إزالة priority لأنه غير موجود في schema
     durationMinutes: apt.durationMinutes,
-    arrivalTime: apt.arrivalTime,
+    arrivalTime: null, // إزالة arrivalTime لأنه غير موجود في schema
     hasVisit: apt.visit !== null,
   }));
 }

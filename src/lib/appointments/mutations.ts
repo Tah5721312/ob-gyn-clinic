@@ -7,38 +7,44 @@ export interface CreateAppointmentData {
   doctorId: number;
   appointmentDate: Date;
   appointmentTime: Date;
-  appointmentType: string;
+  appointmentType?: string; // سيتم تحويله إلى visitReason
+  visitReason?: string;
   status?: string;
-  priority?: string;
   durationMinutes?: number;
   notes?: string;
+  receptionNotes?: string;
   createdBy?: number;
 }
 
 export interface UpdateAppointmentData {
   appointmentDate?: Date;
   appointmentTime?: Date;
-  appointmentType?: string;
+  appointmentType?: string; // سيتم تحويله إلى visitReason
+  visitReason?: string;
   status?: string;
-  priority?: string;
   durationMinutes?: number;
   cancellationReason?: string;
   cancelledBy?: number;
   cancelledAt?: Date;
   arrivalTime?: Date;
   notes?: string;
+  receptionNotes?: string;
 }
 
 export async function createAppointment(
   prisma: PrismaClient,
   data: CreateAppointmentData
 ) {
+  // تحويل appointmentType إلى visitReason إذا كان موجوداً
+  const { appointmentType, ...restData } = data;
+  const visitReason = data.visitReason || appointmentType;
+  
   return await prisma.appointment.create({
     data: {
-      status: data.status || "محجوز",
-      priority: data.priority || "عادي",
+      status: data.status || "BOOKED",
       durationMinutes: data.durationMinutes || 30,
-      ...data,
+      visitReason: visitReason || null,
+      ...restData,
     },
   });
 }
@@ -48,9 +54,17 @@ export async function updateAppointment(
   appointmentId: number,
   data: UpdateAppointmentData
 ) {
+  // تحويل appointmentType إلى visitReason إذا كان موجوداً
+  const { appointmentType, ...restData } = data;
+  const updateData: any = { ...restData };
+  
+  if (appointmentType !== undefined) {
+    updateData.visitReason = appointmentType;
+  }
+  
   return await prisma.appointment.update({
     where: { id: appointmentId },
-    data,
+    data: updateData,
   });
 }
 
@@ -72,10 +86,9 @@ export async function cancelAppointment(
   return await prisma.appointment.update({
     where: { id: appointmentId },
     data: {
-      status: "ملغي",
-      cancellationReason: reason,
-      cancelledBy,
-      cancelledAt: new Date(),
+      status: "CANCELLED",
+      notes: reason, // استخدام notes بدلاً من cancellationReason
+      updatedAt: new Date(),
     },
   });
 }

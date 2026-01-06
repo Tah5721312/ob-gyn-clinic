@@ -12,14 +12,27 @@ interface Patient {
   phone: string;
 }
 
+interface AppointmentData {
+  id: number;
+  patientId: number;
+  patientName: string;
+  appointmentDate: Date | string;
+  appointmentTime: Date | string;
+  appointmentType: string;
+  durationMinutes: number;
+  notes?: string | null;
+  status?: string;
+}
+
 interface NewAppointmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
   initialPatientId?: number;
+  appointmentToEdit?: AppointmentData | null;
 }
 
-export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatientId }: NewAppointmentModalProps) {
+export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatientId, appointmentToEdit }: NewAppointmentModalProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,9 +48,41 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
     notes: "",
   });
 
-  // جلب بيانات المريض إذا كان initialPatientId موجود
+  // جلب بيانات الموعد للتعديل
   useEffect(() => {
-    if (initialPatientId && isOpen) {
+    if (appointmentToEdit && isOpen) {
+      // جلب بيانات المريض
+      fetch(`/api/patients/${appointmentToEdit.patientId}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setSelectedPatient({
+              id: result.data.id,
+              firstName: result.data.firstName,
+              lastName: result.data.lastName,
+              phone: result.data.phone,
+            });
+          }
+        });
+
+      // تعبئة بيانات النموذج
+      const appointmentDate = typeof appointmentToEdit.appointmentDate === 'string' 
+        ? appointmentToEdit.appointmentDate.split('T')[0]
+        : new Date(appointmentToEdit.appointmentDate).toISOString().split('T')[0];
+      
+      const appointmentTime = typeof appointmentToEdit.appointmentTime === 'string'
+        ? new Date(appointmentToEdit.appointmentTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+        : new Date(appointmentToEdit.appointmentTime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+
+      setFormData({
+        appointmentDate,
+        appointmentTime,
+        appointmentType: appointmentToEdit.appointmentType || "FOLLOWUP",
+        durationMinutes: appointmentToEdit.durationMinutes || 30,
+        notes: appointmentToEdit.notes || "",
+      });
+    } else if (initialPatientId && isOpen) {
+      // جلب بيانات المريض إذا كان initialPatientId موجود
       fetch(`/api/patients/${initialPatientId}`)
         .then(res => res.json())
         .then(result => {
@@ -51,11 +96,11 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
           }
         });
     }
-  }, [initialPatientId, isOpen]);
+  }, [appointmentToEdit, initialPatientId, isOpen]);
 
-  // إعادة تعيين النموذج عند الإغلاق
+  // إعادة تعيين النموذج عند الإغلاق (فقط إذا لم يكن في وضع التعديل)
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen && !appointmentToEdit) {
       setSelectedPatient(null);
       setSearchTerm("");
       setFormData({
@@ -66,7 +111,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         notes: "",
       });
     }
-  }, [isOpen]);
+  }, [isOpen, appointmentToEdit]);
 
   // البحث عن المرضى
   useEffect(() => {
@@ -105,19 +150,31 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       const appointmentDateTime = new Date(formData.appointmentDate);
       appointmentDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const response = await fetch("/api/appointments", {
-        method: "POST",
+      const isEditMode = !!appointmentToEdit;
+      const url = isEditMode 
+        ? `/api/appointments/${appointmentToEdit.id}`
+        : "/api/appointments";
+      const method = isEditMode ? "PUT" : "POST";
+
+      const body: any = {
+        appointmentDate: formData.appointmentDate,
+        appointmentTime: appointmentDateTime.toISOString(),
+        appointmentType: formData.appointmentType,
+        durationMinutes: formData.durationMinutes,
+        notes: formData.notes || null,
+      };
+
+      // إضافة الحقول المطلوبة فقط عند الإنشاء
+      if (!isEditMode) {
+        body.patientId = selectedPatient.id;
+        body.doctorId = session.user.doctorId;
+        body.status = AppointmentStatus.BOOKED;
+      }
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          patientId: selectedPatient.id,
-          doctorId: session.user.doctorId,
-          appointmentDate: formData.appointmentDate,
-          appointmentTime: appointmentDateTime.toISOString(),
-          appointmentType: formData.appointmentType,
-          status: AppointmentStatus.BOOKED,
-          durationMinutes: formData.durationMinutes,
-          notes: formData.notes || null,
-        }),
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
@@ -127,11 +184,11 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
           onSuccess();
         }
       } else {
-        alert(result.error || "حدث خطأ أثناء إضافة الموعد");
+        alert(result.error || `حدث خطأ أثناء ${isEditMode ? 'تحديث' : 'إضافة'} الموعد`);
       }
     } catch (error: any) {
-      console.error("Error creating appointment:", error);
-      alert("حدث خطأ أثناء إضافة الموعد");
+      console.error(`Error ${appointmentToEdit ? 'updating' : 'creating'} appointment:`, error);
+      alert(`حدث خطأ أثناء ${appointmentToEdit ? 'تحديث' : 'إضافة'} الموعد`);
     } finally {
       setLoading(false);
     }
@@ -154,7 +211,9 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">موعد جديد</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {appointmentToEdit ? "تعديل الموعد" : "موعد جديد"}
+          </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -181,16 +240,18 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
                     <p className="text-sm text-gray-600">{selectedPatient.phone}</p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedPatient(null);
-                    setSearchTerm("");
-                  }}
-                  className="text-red-600 hover:text-red-800"
-                >
-                  <X size={20} />
-                </button>
+                {!appointmentToEdit && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPatient(null);
+                      setSearchTerm("");
+                    }}
+                    className="text-red-600 hover:text-red-800"
+                  >
+                    <X size={20} />
+                  </button>
+                )}
               </div>
             ) : (
               <div className="relative">
@@ -327,7 +388,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
               disabled={loading || !selectedPatient}
               className="flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? "جاري الحفظ..." : "حفظ الموعد"}
+              {loading ? "جاري الحفظ..." : appointmentToEdit ? "تحديث الموعد" : "حفظ الموعد"}
             </button>
           </div>
         </form>

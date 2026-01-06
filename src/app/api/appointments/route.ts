@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
       appointmentDate: searchParams.get("appointmentDate") ? new Date(searchParams.get("appointmentDate")!) : undefined,
       status: searchParams.get("status") || undefined,
       appointmentType: searchParams.get("appointmentType") || undefined,
-      priority: searchParams.get("priority") || undefined,
     };
 
     const appointments = await getAppointmentsList(prisma, filters);
