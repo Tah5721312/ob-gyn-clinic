@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { PregnancyFollowupFilters, PregnancyFollowupListItem } from "./types";
+import { calculateGestationalAgeWeeks } from "./utils";
 
 function buildWhereClause(filters: PregnancyFollowupFilters) {
   const where: any = {};
@@ -32,6 +33,13 @@ export async function getPregnancyFollowupsList(
 
   const followups = await prisma.pregnancyFollowup.findMany({
     where,
+    include: {
+      pregnancy: {
+        select: {
+          lmpDate: true,
+        },
+      },
+    },
     orderBy: {
       visitDate: "desc",
     },
@@ -39,16 +47,23 @@ export async function getPregnancyFollowupsList(
     skip: offset,
   });
 
-  return followups.map((followup) => ({
-    id: followup.id,
-    pregnancyId: followup.pregnancyId,
-    visitId: followup.visitId,
-    visitDate: followup.visitDate,
-    visitNumber: followup.visitNumber,
-    gestationalAgeWeeks: followup.gestationalAgeWeeks ? Number(followup.gestationalAgeWeeks) : null,
-    fundalHeight: followup.fundalHeight ? Number(followup.fundalHeight) : null,
-    fetalHeartRate: followup.fetalHeartRate,
-  }));
+  return followups.map((followup) => {
+    // حساب gestationalAgeWeeks من lmpDate و visitDate (دائماً في الـ backend)
+    const gestationalAgeWeeks = followup.pregnancy
+      ? calculateGestationalAgeWeeks(
+          followup.pregnancy.lmpDate,
+          followup.visitDate
+        )
+      : null;
+
+    return {
+      id: followup.id,
+      pregnancyId: followup.pregnancyId,
+      visitId: followup.visitId,
+      visitDate: followup.visitDate,
+      gestationalAgeWeeks,
+    };
+  });
 }
 
 export async function getPregnancyFollowupsCount(
@@ -63,12 +78,29 @@ export async function getPregnancyFollowupById(
   prisma: PrismaClient,
   followupId: number
 ) {
-  return await prisma.pregnancyFollowup.findUnique({
+  const followup = await prisma.pregnancyFollowup.findUnique({
     where: { id: followupId },
     include: {
       pregnancy: true,
       visit: true,
     },
   });
+
+  if (!followup) {
+    return null;
+  }
+
+  // حساب gestationalAgeWeeks من lmpDate و visitDate (دائماً في الـ backend)
+  const gestationalAgeWeeks = followup.pregnancy
+    ? calculateGestationalAgeWeeks(
+        followup.pregnancy.lmpDate,
+        followup.visitDate
+      )
+    : null;
+
+  return {
+    ...followup,
+    gestationalAgeWeeks,
+  };
 }
 

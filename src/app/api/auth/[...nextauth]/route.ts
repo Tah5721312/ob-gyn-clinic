@@ -32,14 +32,12 @@ export const authOptions: NextAuthOptions = {
           return {
             id: user.id.toString(),
             name: user.username,
-            email: user.username + "@system.local", // للتوافق مع NextAuth
-            userType: user.userType,
-            roleId: user.roleId,
-            roleName: user.roleName,
+            email: user.email || user.username + "@system.local", // للتوافق مع NextAuth
+            role: user.role,
             doctorId: user.doctorId,
-            staffId: user.staffId,
-            permissions: user.permissions,
-            mustChangePassword: user.mustChangePassword,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
           };
         } catch (error: any) {
           throw new Error(error.message || "حدث خطأ أثناء تسجيل الدخول");
@@ -54,7 +52,7 @@ export const authOptions: NextAuthOptions = {
   },
   
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/signin",
     error: "/auth/error",
   },
   
@@ -62,13 +60,11 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.userType = user.userType;
-        token.roleId = user.roleId;
-        token.roleName = user.roleName;
-        token.doctorId = user.doctorId;
-        token.staffId = user.staffId;
-        token.permissions = user.permissions;
-        token.mustChangePassword = user.mustChangePassword;
+        token.role = (user as any).role;
+        token.doctorId = (user as any).doctorId;
+        token.firstName = (user as any).firstName;
+        token.lastName = (user as any).lastName;
+        token.phone = (user as any).phone;
       }
       return token;
     },
@@ -76,13 +72,11 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.userType = token.userType as string;
-        session.user.roleId = token.roleId as number | null;
-        session.user.roleName = token.roleName as string | null;
+        session.user.role = token.role as string;
         session.user.doctorId = token.doctorId as number | null;
-        session.user.staffId = token.staffId as number | null;
-        session.user.permissions = token.permissions as string[];
-        session.user.mustChangePassword = token.mustChangePassword as boolean;
+        session.user.firstName = token.firstName as string;
+        session.user.lastName = token.lastName as string;
+        session.user.phone = token.phone as string;
       }
       return session;
     },
@@ -94,20 +88,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   
-  events: {
-    async signIn({ user }) {
-      // Log audit trail
-      if (user.id) {
-        await prisma.auditLog.create({
-          data: {
-            userId: parseInt(user.id),
-            actionType: "LOGIN",
-            actionTimestamp: new Date(),
-          },
-        });
-      }
-    },
-  },
+  // تم حذف events.signIn لأن auditLog model غير موجود في الـ schema الجديد
   
   secret: process.env.NEXTAUTH_SECRET,
 };

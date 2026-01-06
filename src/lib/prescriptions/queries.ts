@@ -6,27 +6,12 @@ import { PrescriptionFilters, PrescriptionListItem } from "./types";
 function buildWhereClause(filters: PrescriptionFilters) {
   const where: any = {};
 
-  if (filters.patientId) {
-    where.patientId = filters.patientId;
+  if (filters.visitId) {
+    where.visitId = filters.visitId;
   }
 
-  if (filters.doctorId) {
-    where.doctorId = filters.doctorId;
-  }
-
-  if (filters.prescriptionDate) {
-    where.prescriptionDate = filters.prescriptionDate;
-  }
-
-  if (filters.isChronicMedication !== undefined) {
-    where.isChronicMedication = filters.isChronicMedication;
-  }
-
-  if (filters.search) {
-    where.OR = [
-      { patient: { firstName: { contains: filters.search, mode: "insensitive" } } },
-      { patient: { lastName: { contains: filters.search, mode: "insensitive" } } },
-    ];
+  if (filters.followupId) {
+    where.followupId = filters.followupId;
   }
 
   return where;
@@ -44,28 +29,12 @@ export async function getPrescriptionsList(
   const prescriptions = await prisma.prescription.findMany({
     where,
     include: {
-      patient: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-      doctor: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-      details: {
-        select: {
-          id: true,
-        },
+      _count: {
+        select: { items: true },
       },
     },
     orderBy: {
-      prescriptionDate: "desc",
+      createdAt: "desc",
     },
     take: limit,
     skip: offset,
@@ -74,17 +43,10 @@ export async function getPrescriptionsList(
   return prescriptions.map((prescription) => ({
     id: prescription.id,
     visitId: prescription.visitId,
-    patientId: prescription.patientId,
-    patientName: `${prescription.patient.firstName} ${prescription.patient.lastName}`,
-    doctorId: prescription.doctorId,
-    doctorName: `${prescription.doctor.firstName} ${prescription.doctor.lastName}`,
-    prescriptionDate: prescription.prescriptionDate,
-    isEmergency: prescription.isEmergency,
-    isChronicMedication: prescription.isChronicMedication,
-    validUntil: prescription.validUntil,
-    refillsAllowed: prescription.refillsAllowed,
-    refillsUsed: prescription.refillsUsed,
-    medicationsCount: prescription.details.length,
+    followupId: prescription.followupId,
+    notes: prescription.notes,
+    itemsCount: prescription._count.items,
+    createdAt: prescription.createdAt,
   }));
 }
 
@@ -103,14 +65,33 @@ export async function getPrescriptionById(
   return await prisma.prescription.findUnique({
     where: { id: prescriptionId },
     include: {
-      patient: true,
-      doctor: true,
-      visit: true,
-      details: {
+      items: true,
+      visit: {
         include: {
-          medication: true,
+          patient: true,
         },
       },
+      followup: {
+        include: {
+          pregnancy: {
+            include: {
+              patient: true,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getPrescriptionItems(
+  prisma: PrismaClient,
+  prescriptionId: number
+) {
+  return await prisma.prescriptionItem.findMany({
+    where: { prescriptionId },
+    orderBy: {
+      id: "asc",
     },
   });
 }

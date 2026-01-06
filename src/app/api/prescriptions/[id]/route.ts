@@ -9,7 +9,7 @@ import {
 
 /**
  * GET /api/prescriptions/[id]
- * جلب روشتة واحدة بالـ ID
+ * جلب روشتة واحدة
  */
 export async function GET(
   request: NextRequest,
@@ -69,10 +69,6 @@ export async function PUT(
     }
 
     const body: UpdatePrescriptionData = await request.json();
-
-    if (body.validUntil) {
-      body.validUntil = new Date(body.validUntil);
-    }
 
     const prescription = await updatePrescription(prisma, prescriptionId, body);
 

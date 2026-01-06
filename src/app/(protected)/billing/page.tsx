@@ -1,15 +1,25 @@
-'use client';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { redirect } from "next/navigation";
+import { InvoiceList } from "@/components/billing/InvoiceList";
+import { prisma } from "@/lib/prisma";
+import { getInvoicesList } from "@/lib/invoices";
 
-import * as React from 'react';
-import '@/lib/env';
+export default async function BillingPage() {
+  const session = await getServerSession(authOptions);
 
+  if (!session?.user) {
+    redirect("/signin");
+  }
 
+  // جلب الفواتير - آخر 50 فاتورة
+  const initialInvoices = await getInvoicesList(prisma, {}, { limit: 50 });
 
-
-export default function BillingPage() {
   return (
-    <main>
-     <p> BillingPage  </p>
-    </main>
+    <>
+      <main className="container mx-auto p-6 min-h-screen bg-gray-50">
+        <InvoiceList initialInvoices={initialInvoices} />
+      </main>
+    </>
   );
 }

@@ -18,11 +18,6 @@ export async function GET(request: NextRequest) {
 
     const filters: MedicationFilters = {
       search: searchParams.get("search") || undefined,
-      category: searchParams.get("category") || undefined,
-      isActive:
-        searchParams.get("isActive") !== null && searchParams.get("isActive") !== undefined
-          ? searchParams.get("isActive") === "true"
-          : undefined,
     };
 
     const medications = await getMedicationsList(prisma, filters);

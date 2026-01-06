@@ -51,11 +51,11 @@ export async function POST(request: NextRequest) {
   try {
     const body: CreateInvoiceData = await request.json();
 
-    if (!body.invoiceNumber || !body.patientId || !body.totalAmount) {
+    if (!body.invoiceNumber || !body.patientId) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: invoiceNumber, patientId, totalAmount",
+          error: "البيانات المطلوبة: invoiceNumber, patientId",
         },
         { status: 400 }
       );

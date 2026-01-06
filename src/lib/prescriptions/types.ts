@@ -2,32 +2,45 @@
 
 export interface PrescriptionListItem {
   id: number;
-  visitId: number;
-  patientId: number;
-  patientName: string;
-  doctorId: number;
-  doctorName: string;
-  prescriptionDate: Date;
-  isEmergency: boolean;
-  isChronicMedication: boolean;
-  validUntil: Date | null;
-  refillsAllowed: number;
-  refillsUsed: number;
-  medicationsCount: number;
+  visitId: number | null;
+  followupId: number | null;
+  notes: string | null;
+  itemsCount: number;
+  createdAt: Date;
+}
+
+export interface PrescriptionItemData {
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  instructions?: string;
 }
 
 export interface PrescriptionFilters {
-  patientId?: number;
-  doctorId?: number;
-  prescriptionDate?: Date;
-  isChronicMedication?: boolean;
-  search?: string;
+  visitId?: number;
+  followupId?: number;
 }
 
-export interface PrescriptionListResponse {
-  success: boolean;
-  data: PrescriptionListItem[];
-  count: number;
-  error?: string;
+export interface CreatePrescriptionData {
+  visitId?: number;
+  followupId?: number;
+  notes?: string;
+  items: PrescriptionItemData[];
+}
+
+export interface UpdatePrescriptionData {
+  notes?: string;
+  items?: PrescriptionItemData[];
+}
+
+export interface PrescriptionItemListItem {
+  id: number;
+  prescriptionId: number;
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+  duration: string;
+  instructions: string | null;
 }
 

@@ -38,8 +38,8 @@ export function hasActiveInsurance(insuranceRecords: Array<{ isActive: boolean }
  * التحقق من وجود حمل نشط
  */
 export function hasActivePregnancy(
-  pregnancyRecords: Array<{ pregnancyStatus: string }>
+  pregnancyRecords: Array<{ isActive: boolean }>
 ): boolean {
-  return pregnancyRecords.some((record) => record.pregnancyStatus === "جارية");
+  return pregnancyRecords.some((record) => record.isActive);
 }
 

@@ -5,6 +5,7 @@ import { Search, Phone, MapPin, Shield, Baby, MoreVertical, Eye, Calendar, Steth
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PatientListItem, PatientListResponse } from "@/lib/patients";
+import { NewPatientModal } from "./NewPatientModal";
 
 interface PatientListProps {
   initialPatients?: PatientListItem[];
@@ -21,9 +22,10 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
     city: "",
   });
   const [showActions, setShowActions] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
-  const isDoctor = session?.user?.userType === "DOCTOR";
+  const isDoctor = session?.user?.role === "DOCTOR";
   const actionsRef = useRef<HTMLDivElement>(null);
 
   // إغلاق القائمة عند النقر خارجها
@@ -92,11 +94,17 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">قائمة المرضى</h1>
+          <h1 className="text-3xl font-bold text-gray-900">المرضى</h1>
           <p className="text-gray-600 mt-2">
-            {loading ? "جاري البحث..." : `تم العثور على ${patients.length} مريض`}
+            {loading ? "جاري البحث..." : `${patients.length} مريض`}
           </p>
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          إضافة مريض جديد
+        </button>
       </div>
 
       {/* Search & Filters */}
@@ -113,49 +121,17 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
           />
         </div>
 
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Active Filter */}
+        {/* Filters - بسيطة */}
+        <div className="flex gap-4">
           <select
             value={filters.isActive}
             onChange={(e) => setFilters({ ...filters, isActive: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">جميع الحالات</option>
+            <option value="">الكل</option>
             <option value="true">نشط</option>
             <option value="false">غير نشط</option>
           </select>
-
-          {/* Insurance Filter */}
-          <select
-            value={filters.hasInsurance}
-            onChange={(e) => setFilters({ ...filters, hasInsurance: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">جميع التأمينات</option>
-            <option value="true">لديه تأمين</option>
-            <option value="false">بدون تأمين</option>
-          </select>
-
-          {/* Pregnant Filter */}
-          <select
-            value={filters.isPregnant}
-            onChange={(e) => setFilters({ ...filters, isPregnant: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="">جميع الحالات</option>
-            <option value="true">حامل</option>
-            <option value="false">غير حامل</option>
-          </select>
-
-          {/* City Filter */}
-          <input
-            type="text"
-            placeholder="المدينة..."
-            value={filters.city}
-            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
         </div>
       </div>
 
@@ -317,6 +293,26 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
           </div>
         )}
       </div>
+
+      {/* Modal إضافة مريض جديد */}
+      <NewPatientModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => {
+          // إعادة تحميل المرضى
+          const params = new URLSearchParams();
+          if (search) params.append("search", search);
+          if (filters.isActive) params.append("isActive", filters.isActive);
+
+          fetch(`/api/patients?${params.toString()}`)
+            .then(res => res.json())
+            .then((result: PatientListResponse) => {
+              if (result.success) {
+                setPatients(result.data);
+              }
+            });
+        }}
+      />
     </div>
   );
 }

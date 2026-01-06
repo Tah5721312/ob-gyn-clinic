@@ -1,10 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Lock, User } from "lucide-react";
-import { getRedirectUrl } from "@/lib/redirect-logic";
+
+/**
+ * تحديد URL التوجيه بعد تسجيل الدخول
+ * DOCTOR → /
+ * RECEPTIONIST → /appointments
+ * ADMIN → /
+ */
+function getRedirectUrl(role: string): string {
+  switch (role.toUpperCase()) {
+    case "DOCTOR":
+      return "/";
+    case "RECEPTIONIST":
+      return "/";
+    case "ADMIN":
+      return "/";
+    default:
+      return "/";
+  }
+}
 
 export default function SignIn() {
   const router = useRouter();
@@ -33,30 +51,32 @@ export default function SignIn() {
         return;
       }
 
+      if (!result?.ok) {
+        setError("حدث خطأ أثناء تسجيل الدخول");
+        setLoading(false);
+        return;
+      }
+
       // الانتظار قليلاً حتى يتم إنشاء Session
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
       
       // الحصول على بيانات المستخدم من Session
-      const sessionResponse = await fetch("/api/auth/session");
-      const session = await sessionResponse.json();
-      
-      if (session?.user) {
-        // التحقق من تغيير كلمة المرور
-        if (session.user.mustChangePassword) {
-          router.push("/change-password");
-          return;
+      try {
+        const sessionResponse = await fetch("/api/auth/session");
+        const session = await sessionResponse.json();
+        
+        if (session?.user?.role) {
+          // تحديد URL التوجيه حسب role
+          const redirectUrl = getRedirectUrl(session.user.role);
+          router.push(redirectUrl);
+        } else {
+          // افتراضي
+          router.push("/");
         }
-
-        // تحديد URL التوجيه حسب userType و role
-        const redirectUrl = getRedirectUrl(
-          session.user.userType,
-          session.user.roleName || null,
-          session.user.mustChangePassword
-        );
-        router.push(redirectUrl);
-      } else {
-        // افتراضي
-        router.push("/dashboard");
+      } catch (sessionError) {
+        // إذا فشل جلب الـ session، توجه للصفحة الرئيسية
+        console.error("Error fetching session:", sessionError);
+        router.push("/");
       }
     } catch (error: any) {
       setError(error.message || "حدث خطأ أثناء تسجيل الدخول");
@@ -154,10 +174,6 @@ export default function SignIn() {
           </div>
         </div>
 
-        {/* Security Notice */}
-        <div className="mt-4 text-center text-xs text-gray-500">
-          <p>⚠️ يتم قفل الحساب تلقائياً بعد 5 محاولات فاشلة</p>
-        </div>
       </div>
     </div>
   );

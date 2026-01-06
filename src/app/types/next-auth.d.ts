@@ -9,37 +9,31 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
-      userType: string;
-      roleId: number | null;
-      roleName: string | null;
+      role: string; // DOCTOR, RECEPTIONIST, ADMIN
       doctorId: number | null;
-      staffId: number | null;
-      permissions: string[];
-      mustChangePassword: boolean;
+      firstName: string;
+      lastName: string;
+      phone: string;
     };
   }
 
   interface User {
     id: string;
-    userType: string;
-    roleId: number | null;
-    roleName: string | null;
+    role: string;
     doctorId: number | null;
-    staffId: number | null;
-    permissions: string[];
-    mustChangePassword: boolean;
+    firstName: string;
+    lastName: string;
+    phone: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    userType: string;
-    roleId: number | null;
-    roleName: string | null;
+    role: string;
     doctorId: number | null;
-    staffId: number | null;
-    permissions: string[];
-    mustChangePassword: boolean;
+    firstName: string;
+    lastName: string;
+    phone: string;
   }
 }

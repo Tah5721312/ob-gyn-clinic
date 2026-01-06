@@ -8,10 +8,7 @@ export async function createMedication(
   data: CreateMedicationData
 ) {
   return await prisma.medication.create({
-    data: {
-      isActive: data.isActive ?? true,
-      ...data,
-    },
+    data,
   });
 }
 

@@ -29,7 +29,6 @@ function buildWhereClause(filters: DiagnosisFilters) {
   if (filters.search) {
     where.OR = [
       { diagnosisName: { contains: filters.search, mode: "insensitive" } },
-      { icdCode: { contains: filters.search, mode: "insensitive" } },
     ];
   }
 
@@ -68,10 +67,9 @@ export async function getDiagnosesList(
     visitId: diagnosis.visitId,
     patientId: diagnosis.patientId,
     patientName: `${diagnosis.patient.firstName} ${diagnosis.patient.lastName}`,
-    icdCode: diagnosis.icdCode,
     diagnosisName: diagnosis.diagnosisName,
     diagnosisType: diagnosis.diagnosisType,
-    severity: diagnosis.severity,
+    riskLevel: (diagnosis as any).riskLevel,
     diagnosisDate: diagnosis.diagnosisDate,
     isChronic: diagnosis.isChronic,
     isResolved: diagnosis.isResolved,

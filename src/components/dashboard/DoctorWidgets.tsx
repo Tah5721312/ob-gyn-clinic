@@ -1,79 +1,47 @@
-"use client";
+'use client';
 
-import { Session } from "next-auth";
-import { Calendar, Users, Baby, AlertTriangle, Plus } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { BigActionCard } from './shared/BigActionCard';
 
-interface DoctorWidgetsProps {
-  session: Session;
-}
+export function DoctorWidgets({ session }: { session: any }) {
+  const router = useRouter();
 
-export function DoctorWidgets({ session }: DoctorWidgetsProps) {
   return (
     <div className="space-y-6">
-      {/* Today Appointments */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-blue-600" />
-            مواعيد اليوم
-          </h2>
-        </div>
-        <div className="space-y-3">
-          {/* Placeholder for appointments list */}
-          <div className="text-gray-500 text-sm">لا توجد مواعيد اليوم</div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <BigActionCard
+          title="كشف جديد"
+          description="ابدأ كشف مريضة جديدة"
+          icon="🩺"
+          onClick={() => router.push('/visits/new')}
+          color="bg-blue-600"
+        />
+        <BigActionCard
+          title="مرضى اليوم"
+          description="عرض مواعيد اليوم"
+          icon="📅"
+          onClick={() => router.push('/appointments')}
+          color="bg-green-600"
+        />
+        <BigActionCard
+          title="روشتة سريعة"
+          description="إنشاء روشتة"
+          icon="💊"
+          onClick={() => router.push('/prescriptions/new')}
+          color="bg-purple-600"
+        />
       </div>
-
-      {/* Waiting Patients */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Users className="w-5 h-5 text-green-600" />
-            المرضى في الانتظار
-          </h2>
-        </div>
-        <div className="space-y-3">
-          {/* Placeholder for waiting patients */}
-          <div className="text-gray-500 text-sm">لا يوجد مرضى في الانتظار</div>
-        </div>
-      </div>
-
-      {/* Active Pregnancies */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Baby className="w-5 h-5 text-pink-600" />
-            حالات الحمل النشطة
-          </h2>
-        </div>
-        <div className="space-y-3">
-          {/* Placeholder for active pregnancies */}
-          <div className="text-gray-500 text-sm">لا توجد حالات حمل نشطة</div>
-        </div>
-      </div>
-
-      {/* Alerts */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            تنبيهات (حالات عالية الخطورة / تحاليل حرجة)
-          </h2>
-        </div>
-        <div className="space-y-3">
-          {/* Placeholder for alerts */}
-          <div className="text-gray-500 text-sm">لا توجد تنبيهات</div>
-        </div>
-      </div>
-
-      {/* Start Visit Button */}
-      <div className="flex justify-end">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center gap-2 transition-colors">
-          <Plus className="w-5 h-5" />
-          بدء زيارة
+      
+      {/* إدارة القوالب */}
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <button
+          onClick={() => router.push('/templates')}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition-colors"
+        >
+          <span className="text-xl">📋</span>
+          <span>إدارة القوالب</span>
         </button>
       </div>
     </div>
   );
 }
-

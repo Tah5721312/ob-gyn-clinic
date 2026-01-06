@@ -1,45 +1,40 @@
 // lib/invoices/mutations.ts
 
 import { PrismaClient } from "@prisma/client";
+import {
+  updateInvoicePaymentStatus,
+  validatePaymentAmount,
+} from "@/services/invoice.service";
 
 export interface CreateInvoiceData {
   invoiceNumber: string;
   patientId: number;
+  doctorId?: number;
   visitId?: number;
-  invoiceDate?: Date;
-  dueDate?: Date;
-  subtotalAmount: number;
-  discountPercentage?: number;
+  appointmentId?: number;
+  invoiceDate?: Date | string;
+  dueDate?: Date | string;
+  // المبالغ الإجمالية
+  subtotalAmount?: number;
   discountAmount?: number;
-  discountReason?: string;
-  taxAmount?: number;
-  totalAmount: number;
-  insuranceCoverage?: number;
-  patientResponsibility?: number;
-  netAmount: number;
-  insuranceId?: number;
-  insuranceClaimNumber?: string;
-  billingNotes?: string;
+  totalAmount?: number;
+  insuranceAmount?: number;
+  insuranceCoverage?: number; // alias for insuranceAmount
   notes?: string;
-  createdBy?: number;
 }
 
 export interface UpdateInvoiceData {
   dueDate?: Date;
+  // المبالغ الإجمالية
   discountPercentage?: number;
   discountAmount?: number;
-  discountReason?: string;
   taxAmount?: number;
   totalAmount?: number;
   insuranceCoverage?: number;
   patientResponsibility?: number;
   netAmount?: number;
-  paymentStatus?: string;
-  paidAmount?: number;
-  remainingAmount?: number;
+  // paymentStatus, paidAmount, remainingAmount يتم حسابها تلقائياً
   insuranceId?: number;
-  insuranceClaimNumber?: string;
-  billingNotes?: string;
   notes?: string;
 }
 
@@ -62,12 +57,31 @@ export async function createInvoice(
   prisma: PrismaClient,
   data: CreateInvoiceData
 ) {
+  // حساب المبالغ
+  const subtotal = data.subtotalAmount || 0;
+  const discount = data.discountAmount || 0;
+  const totalAmount = data.totalAmount || (subtotal - discount);
+  const insuranceAmount = data.insuranceCoverage || data.insuranceAmount || null;
+  const remainingAmount = totalAmount - (insuranceAmount || 0);
+
   return await prisma.invoice.create({
     data: {
-      invoiceDate: data.invoiceDate || new Date(),
-      paymentStatus: "غير مدفوع",
+      invoiceNumber: data.invoiceNumber,
+      patientId: data.patientId,
+      doctorId: data.doctorId || 1, // TODO: get from session
+      visitId: data.visitId || null,
+      appointmentId: data.appointmentId || null,
+      invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : new Date(),
+      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      subtotal: subtotal,
+      discount: discount,
+      totalAmount: totalAmount,
       paidAmount: 0,
-      ...data,
+      remainingAmount: remainingAmount,
+      paymentStatus: "UNPAID",
+      insuranceClaim: insuranceAmount ? true : false,
+      insuranceAmount: insuranceAmount,
+      notes: data.notes || null,
     },
   });
 }
@@ -96,37 +110,30 @@ export async function createPayment(
   prisma: PrismaClient,
   data: CreatePaymentData
 ) {
+  // التحقق من المبلغ (Service Layer)
+  await validatePaymentAmount(prisma, data.invoiceId, data.paymentAmount);
+
+  // توليد رقم دفعة بسيط
+  const paymentNumber = `PAY-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+
   const payment = await prisma.payment.create({
     data: {
-      paymentDate: data.paymentDate || new Date(),
+      invoiceId: data.invoiceId,
+      paymentNumber: paymentNumber,
+      paymentDate: data.paymentDate ? new Date(data.paymentDate) : new Date(),
       paymentTime: new Date(),
-      ...data,
+      amount: data.paymentAmount,
+      paymentMethod: data.paymentMethod,
+      referenceNumber: data.referenceNumber || null,
+      bankName: data.bankName || null,
+      checkNumber: data.checkNumber || null,
+      receivedById: data.processedBy || null,
+      notes: data.notes || null,
     },
   });
 
-  // تحديث الفاتورة
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: data.invoiceId },
-  });
-
-  if (invoice) {
-    const newPaidAmount = Number(invoice.paidAmount) + Number(data.paymentAmount);
-    const remainingAmount = Number(invoice.totalAmount) - newPaidAmount;
-
-    await prisma.invoice.update({
-      where: { id: data.invoiceId },
-      data: {
-        paidAmount: newPaidAmount,
-        remainingAmount: remainingAmount,
-        paymentStatus:
-          remainingAmount <= 0
-            ? "مدفوع"
-            : newPaidAmount > 0
-            ? "مدفوع جزئياً"
-            : "غير مدفوع",
-      },
-    });
-  }
+  // تحديث الفاتورة - حساب paidAmount من جميع المدفوعات (Service Layer)
+  await updateInvoicePaymentStatus(prisma, data.invoiceId);
 
   return payment;
 }

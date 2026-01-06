@@ -5,10 +5,9 @@ export interface DiagnosisListItem {
   visitId: number;
   patientId: number;
   patientName: string;
-  icdCode: string | null;
   diagnosisName: string;
   diagnosisType: string;
-  severity: string | null;
+  riskLevel: string | null;
   diagnosisDate: Date;
   isChronic: boolean;
   isResolved: boolean;
@@ -26,11 +25,10 @@ export interface DiagnosisFilters {
 export interface CreateDiagnosisData {
   visitId: number;
   patientId: number;
-  icdCode?: string;
   diagnosisName: string;
   diagnosisNameEn?: string;
   diagnosisType: string;
-  severity?: string;
+  riskLevel?: string;
   diagnosisDate?: Date;
   isChronic?: boolean;
   notes?: string;
@@ -38,14 +36,12 @@ export interface CreateDiagnosisData {
 }
 
 export interface UpdateDiagnosisData {
-  icdCode?: string;
   diagnosisName?: string;
   diagnosisNameEn?: string;
   diagnosisType?: string;
-  severity?: string;
+  riskLevel?: string;
   isChronic?: boolean;
   isResolved?: boolean;
-  resolutionDate?: Date;
   notes?: string;
 }
 

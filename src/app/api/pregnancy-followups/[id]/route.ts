@@ -70,10 +70,11 @@ export async function PUT(
 
     const body: UpdatePregnancyFollowupData = await request.json();
 
-    const followup = await updatePregnancyFollowup(prisma, followupId, {
-      ...body,
-      nextVisitDate: body.nextVisitDate ? new Date(body.nextVisitDate) : undefined,
-    });
+    // تحويل التواريخ
+    if (body.visitDate) body.visitDate = new Date(body.visitDate);
+    if (body.nextVisitDate) body.nextVisitDate = new Date(body.nextVisitDate);
+
+    const followup = await updatePregnancyFollowup(prisma, followupId, body);
 
     return NextResponse.json({
       success: true,

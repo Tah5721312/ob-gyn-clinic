@@ -1,87 +1,39 @@
 // lib/insurance/queries.ts
 
 import { PrismaClient } from "@prisma/client";
-import {
-  InsuranceFilters,
-  InsuranceCompanyListItem,
-  PatientInsuranceListItem,
-} from "./types";
+import { InsuranceFilters, InsuranceListItem } from "./types";
 
-function buildInsuranceWhereClause(filters: InsuranceFilters) {
+function buildWhereClause(filters: InsuranceFilters) {
   const where: any = {};
 
-  if (filters.search) {
-    where.OR = [
-      { companyCode: { contains: filters.search, mode: "insensitive" } },
-      { companyName: { contains: filters.search, mode: "insensitive" } },
-      { companyNameEn: { contains: filters.search, mode: "insensitive" } },
-    ];
+  if (filters.patientId) {
+    where.patientId = filters.patientId;
   }
 
   if (filters.isActive !== undefined) {
     where.isActive = filters.isActive;
   }
 
+  if (filters.expiryDate) {
+    where.expiryDate = {
+      lte: filters.expiryDate,
+    };
+  }
+
   return where;
 }
 
-export async function getInsuranceCompaniesList(
+export async function getInsurancesList(
   prisma: PrismaClient,
   filters: InsuranceFilters = {},
   options: { limit?: number; offset?: number } = {}
-): Promise<InsuranceCompanyListItem[]> {
-  const where = buildInsuranceWhereClause(filters);
+): Promise<InsuranceListItem[]> {
+  const where = buildWhereClause(filters);
   const limit = options.limit || 100;
   const offset = options.offset || 0;
 
-  const companies = await prisma.insuranceCompany.findMany({
+  const insurances = await prisma.insurance.findMany({
     where,
-    select: {
-      id: true,
-      companyCode: true,
-      companyName: true,
-      companyNameEn: true,
-      phone: true,
-      email: true,
-      coveragePercentage: true,
-      isActive: true,
-    },
-    orderBy: {
-      companyName: "asc",
-    },
-    take: limit,
-    skip: offset,
-  });
-
-  return companies.map((company) => ({
-    ...company,
-    coveragePercentage: company.coveragePercentage ? Number(company.coveragePercentage) : null,
-  }));
-}
-
-export async function getInsuranceCompaniesCount(
-  prisma: PrismaClient,
-  filters: InsuranceFilters = {}
-): Promise<number> {
-  const where = buildInsuranceWhereClause(filters);
-  return await prisma.insuranceCompany.count({ where });
-}
-
-export async function getInsuranceCompanyById(
-  prisma: PrismaClient,
-  insuranceId: number
-) {
-  return await prisma.insuranceCompany.findUnique({
-    where: { id: insuranceId },
-  });
-}
-
-export async function getPatientInsurancesList(
-  prisma: PrismaClient,
-  patientId: number
-): Promise<PatientInsuranceListItem[]> {
-  const insurances = await prisma.patientInsurance.findMany({
-    where: { patientId },
     include: {
       patient: {
         select: {
@@ -90,43 +42,55 @@ export async function getPatientInsurancesList(
           lastName: true,
         },
       },
-      insurance: {
-        select: {
-          id: true,
-          companyName: true,
-        },
-      },
     },
     orderBy: {
-      isPrimary: "desc",
+      createdAt: "desc",
     },
+    take: limit,
+    skip: offset,
   });
 
   return insurances.map((insurance) => ({
     id: insurance.id,
     patientId: insurance.patientId,
     patientName: `${insurance.patient.firstName} ${insurance.patient.lastName}`,
-    insuranceId: insurance.insuranceId,
-    insuranceName: insurance.insurance.companyName,
+    insuranceCompany: insurance.insuranceCompany,
     policyNumber: insurance.policyNumber,
-    memberId: insurance.memberId,
-    startDate: insurance.startDate,
-    endDate: insurance.endDate,
-    isPrimary: insurance.isPrimary,
+    expiryDate: insurance.expiryDate,
+    coverageDetails: insurance.coverageDetails,
     isActive: insurance.isActive,
+    createdAt: insurance.createdAt,
   }));
 }
 
-export async function getPatientInsuranceById(
+export async function getInsurancesCount(
   prisma: PrismaClient,
-  patientInsuranceId: number
+  filters: InsuranceFilters = {}
+): Promise<number> {
+  const where = buildWhereClause(filters);
+  return await prisma.insurance.count({ where });
+}
+
+export async function getInsuranceById(
+  prisma: PrismaClient,
+  insuranceId: number
 ) {
-  return await prisma.patientInsurance.findUnique({
-    where: { id: patientInsuranceId },
+  return await prisma.insurance.findUnique({
+    where: { id: insuranceId },
     include: {
       patient: true,
-      insurance: true,
     },
   });
 }
 
+export async function getInsurancesByPatientId(
+  prisma: PrismaClient,
+  patientId: number
+) {
+  return await prisma.insurance.findMany({
+    where: { patientId },
+    orderBy: {
+      expiryDate: "desc",
+    },
+  });
+}

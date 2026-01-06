@@ -58,8 +58,25 @@ export async function createVisit(
 ) {
   return await prisma.medicalVisit.create({
     data: {
-      visitStatus: data.visitStatus || "جارية",
-      ...data,
+      appointmentId: data.appointmentId,
+      patientId: data.patientId,
+      doctorId: data.doctorId,
+      visitDate: data.visitDate,
+      visitStartTime: data.visitStartTime,
+      visitEndTime: data.visitEndTime,
+      chiefComplaint: data.chiefComplaint || null,
+      symptoms: data.symptoms || null,
+      weight: data.weight ? data.weight : null,
+      bloodPressureSystolic: data.bloodPressureSystolic || null,
+      bloodPressureDiastolic: data.bloodPressureDiastolic || null,
+      temperature: data.temperature || null,
+      pulse: data.pulse || null,
+      examinationFindings: data.examinationFindings || null,
+      treatmentPlan: data.treatmentPlan || null,
+      recommendations: data.recommendations || null,
+      nextVisitDate: data.nextVisitDate || null,
+      notes: data.notes || null,
+      isDraft: false, // زيارة جديدة = غير مسودة
     },
   });
 }

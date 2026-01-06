@@ -14,8 +14,6 @@ export interface VisitListItem {
   visitStatus: string;
   chiefComplaint: string | null;
   hasDiagnoses: boolean;
-  hasPrescriptions: boolean;
-  hasLabOrders: boolean;
 }
 
 export interface VisitFilters {

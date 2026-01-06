@@ -70,10 +70,6 @@ export async function PUT(
 
     const body: UpdateDiagnosisData = await request.json();
 
-    if (body.resolutionDate) {
-      body.resolutionDate = new Date(body.resolutionDate);
-    }
-
     const diagnosis = await updateDiagnosis(prisma, diagnosisId, body);
 
     return NextResponse.json({

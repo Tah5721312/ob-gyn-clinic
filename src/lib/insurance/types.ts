@@ -1,117 +1,36 @@
 // lib/insurance/types.ts
 
-export interface InsuranceCompanyListItem {
-  id: number;
-  companyCode: string;
-  companyName: string;
-  companyNameEn: string | null;
-  phone: string | null;
-  email: string | null;
-  coveragePercentage: number | null;
-  isActive: boolean;
-}
-
-export interface InsuranceFilters {
-  search?: string;
-  isActive?: boolean;
-}
-
-export interface CreateInsuranceCompanyData {
-  companyCode: string;
-  companyName: string;
-  companyNameEn?: string;
-  contactPerson?: string;
-  phone?: string;
-  phone2?: string;
-  email?: string;
-  website?: string;
-  address?: string;
-  city?: string;
-  coveragePercentage?: number;
-  copayAmount?: number;
-  deductibleAmount?: number;
-  maxCoveragePerVisit?: number;
-  maxCoverageAnnual?: number;
-  approvalRequired?: boolean;
-  paymentTerms?: string;
-  paymentCycleDays?: number;
-  contractStartDate?: Date;
-  contractEndDate?: Date;
-  isActive?: boolean;
-  notes?: string;
-}
-
-export interface UpdateInsuranceCompanyData {
-  companyName?: string;
-  companyNameEn?: string;
-  contactPerson?: string;
-  phone?: string;
-  phone2?: string;
-  email?: string;
-  website?: string;
-  address?: string;
-  city?: string;
-  coveragePercentage?: number;
-  copayAmount?: number;
-  deductibleAmount?: number;
-  maxCoveragePerVisit?: number;
-  maxCoverageAnnual?: number;
-  approvalRequired?: boolean;
-  paymentTerms?: string;
-  paymentCycleDays?: number;
-  contractStartDate?: Date;
-  contractEndDate?: Date;
-  isActive?: boolean;
-  notes?: string;
-}
-
-export interface PatientInsuranceListItem {
+export interface InsuranceListItem {
   id: number;
   patientId: number;
   patientName: string;
-  insuranceId: number;
-  insuranceName: string;
+  insuranceCompany: string;
   policyNumber: string;
-  memberId: string | null;
-  startDate: Date;
-  endDate: Date | null;
-  isPrimary: boolean;
+  expiryDate: Date;
+  coverageDetails: string | null;
   isActive: boolean;
+  createdAt: Date;
 }
 
-export interface CreatePatientInsuranceData {
+export interface InsuranceFilters {
+  patientId?: number;
+  isActive?: boolean;
+  expiryDate?: Date;
+}
+
+export interface CreateInsuranceData {
   patientId: number;
-  insuranceId: number;
+  insuranceCompany: string;
   policyNumber: string;
-  memberId?: string;
-  groupNumber?: string;
-  policyHolderName?: string;
-  relationshipToHolder?: string;
-  startDate: Date;
-  endDate?: Date;
-  coverageType?: string;
-  coverageDetails?: string;
-  preauthorizationRequired?: boolean;
-  isPrimary?: boolean;
+  expiryDate: Date;
+  coverageDetails?: string | null;
   isActive?: boolean;
-  notes?: string;
 }
 
-export interface UpdatePatientInsuranceData {
+export interface UpdateInsuranceData {
+  insuranceCompany?: string;
   policyNumber?: string;
-  memberId?: string;
-  groupNumber?: string;
-  policyHolderName?: string;
-  relationshipToHolder?: string;
-  startDate?: Date;
-  endDate?: Date;
-  coverageType?: string;
-  coverageDetails?: string;
-  preauthorizationRequired?: boolean;
-  isPrimary?: boolean;
+  expiryDate?: Date;
+  coverageDetails?: string | null;
   isActive?: boolean;
-  verificationDate?: Date;
-  verifiedBy?: number;
-  notes?: string;
 }
-

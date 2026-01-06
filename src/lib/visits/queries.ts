@@ -67,14 +67,6 @@ export async function getVisitsList(
         select: { id: true },
         take: 1,
       },
-      prescriptions: {
-        select: { id: true },
-        take: 1,
-      },
-      labOrders: {
-        select: { id: true },
-        take: 1,
-      },
     },
     orderBy: {
       visitDate: "desc",
@@ -97,8 +89,6 @@ export async function getVisitsList(
     visitStatus: visit.visitStatus,
     chiefComplaint: visit.chiefComplaint,
     hasDiagnoses: visit.diagnoses.length > 0,
-    hasPrescriptions: visit.prescriptions.length > 0,
-    hasLabOrders: visit.labOrders.length > 0,
   }));
 }
 
@@ -121,25 +111,6 @@ export async function getVisitById(
       doctor: true,
       appointment: true,
       diagnoses: true,
-      prescriptions: {
-        include: {
-          details: {
-            include: {
-              medication: true,
-            },
-          },
-        },
-      },
-      labOrders: {
-        include: {
-          results: {
-            include: {
-              test: true,
-            },
-          },
-        },
-      },
-      radiologyOrders: true,
     },
   });
 }

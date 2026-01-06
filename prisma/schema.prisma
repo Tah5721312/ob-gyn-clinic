@@ -1,6 +1,6 @@
 // ====================================
-// Prisma Schema - نظام عيادة نساء وولادة
-// Database: PostgreSQL / MySQL
+// Prisma Schema - عيادة نساء وولادة مبسطة
+// للعيادات الخارجية - طبيب واحد + استقبال
 // ====================================
 
 generator client {
@@ -8,7 +8,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql" // أو "mysql"
+  provider = "postgresql"
 }
 
 // ====================================
@@ -16,19 +16,16 @@ datasource db {
 // ====================================
 
 model Patient {
-  id            Int            @id @default(autoincrement())
-  nationalId    String         @unique @db.VarChar(14)
-  firstName     String         @db.VarChar(50)
-  lastName      String         @db.VarChar(50)
-  birthDate     DateTime       @db.Date
-  bloodType     String?        @db.VarChar(10)
-  phone         String         @db.VarChar(15)
-  phone2        String?        @db.VarChar(15)
-  email         String?        @db.VarChar(100)
-  address       String?        @db.VarChar(200)
-  city          String?        @db.VarChar(50)
-  maritalStatus String?        @db.VarChar(20)
-  occupation    String?        @db.VarChar(100)
+  id            Int      @id @default(autoincrement())
+  nationalId    String   @unique @db.VarChar(14)
+  firstName     String   @db.VarChar(50)
+  lastName      String   @db.VarChar(50)
+  birthDate     DateTime @db.Date
+  bloodType     String?  @db.VarChar(10)
+  phone         String   @db.VarChar(15)
+  phone2        String?  @db.VarChar(15)
+  address       String?  @db.VarChar(200)
+  maritalStatus String?  @db.VarChar(20)
 
   // بيانات الطوارئ
   emergencyContactName     String? @db.VarChar(100)
@@ -39,9 +36,11 @@ model Patient {
   isActive         Boolean  @default(true)
   notes            String?  @db.Text
 
+  // التأمين النشط
+  insuranceId Int?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  createdBy Int?
 
   // العلاقات
   appointments     Appointment[]
@@ -49,70 +48,104 @@ model Patient {
   medicalHistory   MedicalHistory?
   pregnancyRecords PregnancyRecord[]
   diagnoses        Diagnosis[]
-  prescriptions    Prescription[]
-  labOrders        LabOrder[]
-  radiologyOrders  RadiologyOrder[]
-  surgeries        Surgery[]
+  insurances       Insurance[]       @relation("PatientInsurances")
+  insurance        Insurance?        @relation("ActiveInsurance", fields: [insuranceId], references: [id])
   invoices         Invoice[]
-  patientInsurance PatientInsurance[]
 
   @@index([nationalId])
   @@index([phone])
   @@index([firstName, lastName])
   @@index([isActive])
-  @@index([registrationDate])
+  @@index([insuranceId])
   @@map("patients")
 }
 
-// Enums moved to src/lib/enumdb.ts
+// ====================================
+// 1️⃣1️⃣ التأمين (Insurance)
+// ====================================
+
+model Insurance {
+  id               Int      @id @default(autoincrement())
+  patientId        Int
+  insuranceCompany String   @db.VarChar(100)
+  policyNumber     String   @db.VarChar(100)
+  expiryDate       DateTime @db.Date
+  coverageDetails  String?  @db.Text
+  isActive         Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patient        Patient   @relation("PatientInsurances", fields: [patientId], references: [id], onDelete: Cascade)
+  activePatients Patient[] @relation("ActiveInsurance")
+
+  @@index([patientId])
+  @@index([isActive])
+  @@index([expiryDate])
+  @@map("insurances")
+}
 
 // ====================================
 // 2️⃣ الأطباء (Doctors)
 // ====================================
 
 model Doctor {
-  id                Int     @id @default(autoincrement())
-  nationalId        String  @unique @db.VarChar(14)
-  firstName         String  @db.VarChar(50)
-  lastName          String  @db.VarChar(50)
-  specialization    String  @db.VarChar(100)
-  subSpecialization String? @db.VarChar(100)
-  licenseNumber     String  @unique @db.VarChar(50)
-  phone             String  @db.VarChar(15)
-  email             String? @db.VarChar(100)
-
-  // الرسوم
-  consultationFee Decimal  @db.Decimal(10, 2)
-  followupFee     Decimal? @db.Decimal(10, 2)
-  emergencyFee    Decimal? @db.Decimal(10, 2)
-  surgeryBaseFee  Decimal? @db.Decimal(10, 2)
-
-  yearsOfExperience Int?
-  qualification     String? @db.VarChar(200)
-  bio               String? @db.Text
-  profileImage      String? @db.VarChar(500)
-  isActive          Boolean @default(true)
+  id             Int     @id @default(autoincrement())
+  nationalId     String  @unique @db.VarChar(14)
+  firstName      String  @db.VarChar(50)
+  lastName       String  @db.VarChar(50)
+  specialization String  @db.VarChar(100)
+  licenseNumber  String  @unique @db.VarChar(50)
+  phone          String  @db.VarChar(15)
+  isActive       Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // العلاقات
-  workingSchedule             WorkingSchedule[]
-  leaves                      DoctorLeave[]
-  appointments                Appointment[]
-  visits                      MedicalVisit[]
-  prescriptions               Prescription[]
-  labOrders                   LabOrder[]
-  radiologyOrders             RadiologyOrder[]
-  surgeries                   Surgery[]
-  surgeriesAsAnesthesiologist Surgery[]         @relation("Anesthesiologist")
-  systemUser                  SystemUser?
+  user            User?
+  workingSchedule WorkingSchedule[]
+  appointments    Appointment[]
+  visits          MedicalVisit[]
+  templates       Template[]
+  invoices        Invoice[]
 
   @@index([nationalId])
   @@index([licenseNumber])
   @@index([isActive])
-  @@index([specialization])
   @@map("doctors")
+}
+
+// ====================================
+// 2️⃣1️⃣ المستخدمون (Users)
+// ====================================
+
+model User {
+  id           Int    @id @default(autoincrement())
+  username     String @unique @db.VarChar(50)
+  passwordHash String @db.VarChar(255)
+  role         String @db.VarChar(20) // DOCTOR, RECEPTIONIST, ADMIN
+
+  doctorId Int? @unique
+
+  firstName String  @db.VarChar(50)
+  lastName  String  @db.VarChar(50)
+  email     String? @unique @db.VarChar(100)
+  phone     String  @db.VarChar(15)
+
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor   Doctor?   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([username])
+  @@index([role])
+  @@index([email])
+  @@map("users")
 }
 
 // ====================================
@@ -123,15 +156,19 @@ model WorkingSchedule {
   id                  Int      @id @default(autoincrement())
   doctorId            Int
   dayOfWeek           Int // 0=الأحد، 6=السبت
-  dayName             String         @db.VarChar(20)
+  dayName             String   @db.VarChar(20)
   startTime           DateTime @db.Time
   endTime             DateTime @db.Time
   slotDurationMinutes Int      @default(30)
   maxPatientsPerSlot  Int      @default(1)
   isActive            Boolean  @default(true)
-  notes               String?  @db.VarChar(500)
+
+  // الإجازات
+  breakStartTime DateTime? @db.Time // وقت بداية الراحة
+  breakEndTime   DateTime? @db.Time // وقت نهاية الراحة
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
@@ -141,73 +178,38 @@ model WorkingSchedule {
 }
 
 // ====================================
-// 4️⃣ إجازات الأطباء
-// ====================================
-
-model DoctorLeave {
-  id             Int       @id @default(autoincrement())
-  doctorId       Int
-  leaveStartDate DateTime  @db.Date
-  leaveEndDate   DateTime  @db.Date
-  leaveType      String       @db.VarChar(30)
-  reason         String?   @db.VarChar(500)
-  isApproved     Boolean   @default(false)
-  approvedBy     Int?
-
-  createdAt DateTime @default(now())
-
-  doctor Doctor @relation(fields: [doctorId], references: [id])
-
-  @@index([doctorId, leaveStartDate, leaveEndDate])
-  @@index([leaveStartDate, leaveEndDate])
-  @@index([isApproved])
-  @@map("doctor_leaves")
-}
-
-// ====================================
-// 5️⃣ الحجوزات (Appointments)
+// 4️⃣ الحجوزات (Appointments)
 // ====================================
 
 model Appointment {
-  id              Int               @id @default(autoincrement())
+  id              Int      @id @default(autoincrement())
   patientId       Int
   doctorId        Int
-  appointmentDate DateTime          @db.Date
-  appointmentTime DateTime          @db.Time
-  appointmentType String             @db.VarChar(30)
-  status          String             @default("محجوز") @db.VarChar(30)
-  priority        String             @default("عادي") @db.VarChar(20)
-  durationMinutes Int               @default(30)
-
-  cancellationReason String?   @db.VarChar(200)
-  cancelledBy        Int?
-  cancelledAt        DateTime?
-
-  reminderSent   Boolean   @default(false)
-  reminderSentAt DateTime?
-  arrivalTime    DateTime?
-
-  notes String? @db.Text
+  appointmentDate DateTime @db.Date
+  appointmentTime DateTime @db.Time
+  status          String   @default("BOOKED") @db.VarChar(20) // BOOKED, CANCELLED, COMPLETED
+  durationMinutes Int      @default(30)
+  visitReason     String?  @db.VarChar(100) // سبب الزيارة: كشف، متابعة حمل، سونار، إلخ
+  receptionNotes  String?  @db.Text // ملاحظات للاستقبال: "تدخل بسرعة"، "مريضة حساسة"، إلخ
+  notes           String?  @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  createdBy Int?
 
   patient Patient       @relation(fields: [patientId], references: [id])
   doctor  Doctor        @relation(fields: [doctorId], references: [id])
   visit   MedicalVisit?
+  invoice Invoice?
 
   @@index([patientId])
   @@index([doctorId])
   @@index([appointmentDate, doctorId])
-  @@index([appointmentDate, appointmentTime])
   @@index([status])
-  @@index([appointmentType])
   @@map("appointments")
 }
 
 // ====================================
-// 6️⃣ الزيارات الطبية
+// 5️⃣ الزيارات الطبية
 // ====================================
 
 model MedicalVisit {
@@ -218,31 +220,27 @@ model MedicalVisit {
   visitDate      DateTime  @db.Date
   visitStartTime DateTime?
   visitEndTime   DateTime?
+  completedAt    DateTime?
+  isDraft        Boolean   @default(true) // مسودة - يمكن للدكتور فتح كشف وتركه مؤقتاً
 
   // الشكوى والأعراض
-  chiefComplaint   String? @db.Text
-  symptoms         String? @db.Text
-  symptomsDuration String? @db.VarChar(100)
+  chiefComplaint String? @db.Text
+  symptoms       String? @db.Text
 
   // العلامات الحيوية
   weight                 Decimal? @db.Decimal(5, 2)
-  height                 Decimal? @db.Decimal(5, 2)
   bloodPressureSystolic  Int?
   bloodPressureDiastolic Int?
   temperature            Decimal? @db.Decimal(4, 2)
   pulse                  Int?
-  respiratoryRate        Int?
-  oxygenSaturation       Decimal? @db.Decimal(5, 2)
 
   // معلومات الزيارة
-  visitType           String?     @db.VarChar(50)
-  examinationFindings String?     @db.Text
-  treatmentPlan       String?     @db.Text
-  recommendations     String?     @db.Text
-  nextVisitDate       DateTime?   @db.Date
-  visitStatus         String      @default("جارية") @db.VarChar(30)
-
-  notes String? @db.Text
+  examinationFindings String?   @db.Text
+  treatmentPlan       String?   @db.Text
+  recommendations     String?   @db.Text
+  nextVisitDate       DateTime? @db.Date
+  referredTo          String?   @db.VarChar(200) // التحويل لمستشفى/طبيب آخر
+  notes               String?   @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -251,21 +249,19 @@ model MedicalVisit {
   patient           Patient             @relation(fields: [patientId], references: [id])
   doctor            Doctor              @relation(fields: [doctorId], references: [id])
   diagnoses         Diagnosis[]
-  prescriptions     Prescription[]
-  labOrders         LabOrder[]
-  radiologyOrders   RadiologyOrder[]
   pregnancyFollowup PregnancyFollowup[]
-  surgeryFollowup   SurgeryFollowup[]
-  invoices          Invoice[]
+  prescriptions     Prescription[]
+  invoice           Invoice?
 
   @@index([patientId])
   @@index([doctorId])
   @@index([visitDate])
+  @@index([isDraft])
   @@map("medical_visits")
 }
 
 // ====================================
-// 7️⃣ التاريخ المرضي
+// 6️⃣ التاريخ المرضي
 // ====================================
 
 model MedicalHistory {
@@ -280,15 +276,13 @@ model MedicalHistory {
   familyHistory      String? @db.Text
 
   // التاريخ النسائي
-  gynecologicalHistory     String?          @db.Text
-  ageOfMenarche            Int?
-  lastMenstrualPeriod      DateTime?        @db.Date
-  menstrualCycleLength     Int?
-  menstrualCycleRegularity String? @db.VarChar(30)
-  menstrualFlow            String? @db.VarChar(20)
-  dysmenorrhea             String?          @db.VarChar(50)
-  contraceptionMethod      String?          @db.VarChar(100)
-  contraceptionStartDate   DateTime?        @db.Date
+  gynecologicalHistory   String?   @db.Text
+  ageOfMenarche          Int?
+  lastMenstrualPeriod    DateTime? @db.Date
+  menstrualCycleLength   Int?
+  menstrualNotes         String?   @db.Text // ملاحظات الدورة الشهرية: انتظام، تدفق، ألم، إلخ
+  contraceptionMethod    String?   @db.VarChar(100)
+  contraceptionStartDate DateTime? @db.Date
 
   // التاريخ الإنجابي (GPAL)
   gravida        Int @default(0) // عدد مرات الحمل
@@ -304,7 +298,6 @@ model MedicalHistory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  updatedBy Int?
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
@@ -312,7 +305,7 @@ model MedicalHistory {
 }
 
 // ====================================
-// 8️⃣ سجلات الحمل
+// 7️⃣ سجلات الحمل
 // ====================================
 
 model PregnancyRecord {
@@ -323,50 +316,35 @@ model PregnancyRecord {
   eddDate         DateTime? @db.Date // تاريخ الولادة المتوقع
   eddByUltrasound DateTime? @db.Date
 
-  conceptionMethod String?      @db.VarChar(30)
-  pregnancyType    String?      @db.VarChar(30)
-  pregnancyStatus  String       @db.VarChar(30)
-  riskLevel        String?      @db.VarChar(20)
-
   // بيانات الولادة
   deliveryDate             DateTime? @db.Date
   deliveryType             String?   @db.VarChar(50)
-  deliveryLocation         String?   @db.VarChar(100)
   gestationalAgeAtDelivery Decimal?  @db.Decimal(4, 1)
   deliveryMethod           String?   @db.VarChar(100)
-  anesthesiaType           String?   @db.VarChar(50)
 
   // بيانات المولود
-  babyGender            String?     @db.VarChar(10)
-  babyWeight            Decimal?    @db.Decimal(5, 3)
-  babyLength            Decimal?    @db.Decimal(4, 1)
-  babyHeadCircumference Decimal?    @db.Decimal(4, 1)
-  apgarScore1min        Int?
-  apgarScore5min        Int?
-  babyStatus            String?     @db.VarChar(30)
+  babyGender String? @db.VarChar(10)
 
-  complications              String? @db.Text
   medicationsDuringPregnancy String? @db.Text
   notes                      String? @db.Text
+  isActive                   Boolean @default(true) // حمل حالي أم انتهى
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patient         Patient             @relation(fields: [patientId], references: [id])
-  followups       PregnancyFollowup[]
-  radiologyOrders RadiologyOrder[]
+  patient   Patient             @relation(fields: [patientId], references: [id])
+  followups PregnancyFollowup[]
 
   @@unique([patientId, pregnancyNumber])
   @@index([patientId])
-  @@index([pregnancyStatus])
   @@index([lmpDate])
   @@index([eddDate])
-  @@index([deliveryDate])
+  @@index([isActive])
   @@map("pregnancy_records")
 }
 
 // ====================================
-// 9️⃣ متابعة الحمل
+// 8️⃣ متابعة الحمل
 // ====================================
 
 model PregnancyFollowup {
@@ -374,19 +352,9 @@ model PregnancyFollowup {
   pregnancyId Int
   visitId     Int
   visitDate   DateTime @db.Date
-  visitNumber Int?
 
-  // عمر الحمل
+  // عمر الحمل (محسوب تلقائياً من تاريخ آخر دورة)
   gestationalAgeWeeks Decimal? @db.Decimal(3, 1)
-  gestationalAgeDays  Int?
-
-  // الفحص السريري
-  fundalHeight       Decimal?       @db.Decimal(4, 2)
-  fetalHeartRate     Int?
-  fetalMovement      String?     @db.VarChar(30)
-  fetalPosition      String?        @db.VarChar(50)
-  cervicalDilation   Decimal?       @db.Decimal(3, 1)
-  cervicalEffacement Int?
 
   // العلامات الحيوية للأم
   maternalWeight Decimal? @db.Decimal(5, 2)
@@ -395,32 +363,25 @@ model PregnancyFollowup {
   edema          String?  @db.VarChar(50)
 
   // الفحوصات
-  urineProtein    String?  @db.VarChar(50)
-  urineGlucose    String?  @db.VarChar(50)
   urineAnalysis   String?  @db.VarChar(200)
   bloodSugarLevel Decimal? @db.Decimal(5, 2)
   hemoglobinLevel Decimal? @db.Decimal(4, 2)
 
   // نتائج السونار
-  ultrasoundFindings   String?  @db.Text
-  estimatedFetalWeight Decimal? @db.Decimal(6, 3)
-  amnioticFluidIndex   Decimal? @db.Decimal(4, 2)
-  placentalLocation    String?  @db.VarChar(100)
-  placentalGrade       String?  @db.VarChar(20)
+  ultrasoundFindings String? @db.Text
+  placentalLocation  String? @db.VarChar(100)
 
   // المشاكل والتوصيات
   complications         String?   @db.Text
-  riskFactors           String?   @db.Text
-  recommendations       String?   @db.Text
   medicationsPrescribed String?   @db.Text
   nextVisitDate         DateTime? @db.Date
-  nextVisitType         String?   @db.VarChar(100)
   notes                 String?   @db.Text
 
   createdAt DateTime @default(now())
 
-  pregnancy PregnancyRecord @relation(fields: [pregnancyId], references: [id], onDelete: Cascade)
-  visit     MedicalVisit    @relation(fields: [visitId], references: [id])
+  pregnancy     PregnancyRecord @relation(fields: [pregnancyId], references: [id], onDelete: Cascade)
+  visit         MedicalVisit    @relation(fields: [visitId], references: [id])
+  prescriptions Prescription[]
 
   @@index([pregnancyId])
   @@index([visitId])
@@ -429,751 +390,238 @@ model PregnancyFollowup {
 }
 
 // ====================================
-// 🔟 التشخيصات
+// 9️⃣ التشخيصات
 // ====================================
 
 model Diagnosis {
-  id              Int           @id @default(autoincrement())
-  visitId         Int
-  patientId       Int
-  icdCode         String?       @db.VarChar(10)
-  diagnosisName   String        @db.VarChar(200)
-  diagnosisNameEn String?       @db.VarChar(200)
-  diagnosisType   String       @db.VarChar(30)
-  severity        String?      @db.VarChar(20)
-  diagnosisDate   DateTime      @default(now()) @db.Date
-  isChronic       Boolean       @default(false)
-  isResolved      Boolean       @default(false)
-  resolutionDate  DateTime?     @db.Date
-  notes           String?       @db.Text
+  id            Int      @id @default(autoincrement())
+  visitId       Int
+  patientId     Int
+  diagnosisName String   @db.VarChar(200)
+  diagnosisDate DateTime @default(now()) @db.Date
+  isChronic     Boolean  @default(false)
+  isHighRisk    Boolean  @default(false)
+  notes         String?  @db.Text
 
   createdAt DateTime @default(now())
-  createdBy Int?
 
   visit   MedicalVisit @relation(fields: [visitId], references: [id])
   patient Patient      @relation(fields: [patientId], references: [id])
 
   @@index([patientId])
   @@index([visitId])
-  @@index([icdCode])
   @@index([diagnosisDate])
   @@index([isChronic])
   @@map("diagnoses")
 }
 
 // ====================================
-// 1️⃣1️⃣ الأدوية
+// 🔟 الأدوية
 // ====================================
 
 model Medication {
-  id             Int             @id @default(autoincrement())
-  medicationName String          @db.VarChar(200)
-  genericName    String?         @db.VarChar(200)
-  scientificName String?         @db.VarChar(200)
-  category       String?         @db.VarChar(100)
-  subcategory    String?         @db.VarChar(100)
-  form           String?         @db.VarChar(30)
-  strength       String?         @db.VarChar(50)
-  unit           String?         @db.VarChar(20)
-  manufacturer   String?         @db.VarChar(200)
-
-  // الأمان
-  pregnancyCategory String?  @db.VarChar(5)
-  breastfeedingSafe Boolean?
+  id                Int      @id @default(autoincrement())
+  medicationName    String   @db.VarChar(200) // اسم الدواء
+  scientificName    String?  @db.VarChar(200) // الاسم العلمي
+  form              String?  @db.VarChar(50) // الشكل الدوائي: أقراص، كبسولات، شراب، إلخ
+  pregnancyCategory String?  @db.VarChar(5) // A, B, C, D
+  breastfeedingSafe String?  @db.VarChar(20) // SAFE, UNSAFE, CAUTION
+  notes             String?  @db.Text // ملاحظات إضافية
   sideEffects       String?  @db.Text
-  contraindications String?  @db.Text
-  drugInteractions  String?  @db.Text
-  storageConditions String?  @db.VarChar(200)
+  price             Decimal? @db.Decimal(10, 2)
 
-  price    Decimal? @db.Decimal(10, 2)
-  isActive Boolean  @default(true)
+  isActive Boolean @default(true) // مهم عشان الأدوية المتوقفة
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  prescriptionDetails PrescriptionDetail[]
-
   @@index([medicationName])
-  @@index([category])
-  @@index([isActive])
+  @@index([form])
+  @@index([isActive]) // Index جديد
   @@map("medications")
 }
 
 // ====================================
-// 1️⃣2️⃣ الروشتات
+// 1️⃣1️⃣ الروشتات (Prescriptions)
 // ====================================
 
 model Prescription {
-  id                  Int       @id @default(autoincrement())
-  visitId             Int
-  patientId           Int
-  doctorId            Int
-  prescriptionDate    DateTime  @default(now()) @db.Date
-  isEmergency         Boolean   @default(false)
-  isChronicMedication Boolean   @default(false)
-  validUntil          DateTime? @db.Date
-  refillsAllowed      Int       @default(0)
-  refillsUsed         Int       @default(0)
-  pharmacyNotes       String?   @db.Text
-  notes               String?   @db.Text
+  id         Int     @id @default(autoincrement())
+  visitId    Int? // للزيارات العادية
+  followupId Int? // لمتابعات الحمل
+  notes      String? @db.Text
 
   createdAt DateTime @default(now())
 
-  visit   MedicalVisit         @relation(fields: [visitId], references: [id])
-  patient Patient              @relation(fields: [patientId], references: [id])
-  doctor  Doctor               @relation(fields: [doctorId], references: [id])
-  details PrescriptionDetail[]
+  visit    MedicalVisit?      @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  followup PregnancyFollowup? @relation(fields: [followupId], references: [id], onDelete: Cascade)
+  items    PrescriptionItem[]
 
-  @@index([patientId])
-  @@index([doctorId])
-  @@index([prescriptionDate])
   @@index([visitId])
-  @@index([isChronicMedication])
+  @@index([followupId])
   @@map("prescriptions")
 }
 
-model PrescriptionDetail {
-  id              Int              @id @default(autoincrement())
-  prescriptionId  Int
-  medicationId    Int
-  dosage          String           @db.VarChar(100)
-  frequency       String           @db.VarChar(100)
-  frequencyPerDay Int?
-  route           String?      @db.VarChar(30)
-  timing          String?          @db.VarChar(200)
-  durationDays    Int?
-  startDate       DateTime?        @db.Date
-  endDate         DateTime?        @db.Date
-  totalQuantity   Int?
-  instructions    String?          @db.Text
-  isAsNeeded      Boolean          @default(false)
+model PrescriptionItem {
+  id             Int     @id @default(autoincrement())
+  prescriptionId Int
+  medicationName String  @db.VarChar(200)
+  dosage         String  @db.VarChar(100)
+  frequency      String  @db.VarChar(100)
+  duration       String  @db.VarChar(100)
+  instructions   String? @db.Text
 
   prescription Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
-  medication   Medication   @relation(fields: [medicationId], references: [id])
 
   @@index([prescriptionId])
-  @@map("prescription_details")
+  @@map("prescription_items")
 }
 
 // ====================================
-// 1️⃣3️⃣ التحاليل المعملية
+// 1️⃣2️⃣ القوالب الجاهزة (Templates)
 // ====================================
 
-model LabTest {
-  id                      Int         @id @default(autoincrement())
-  testCode                String      @unique @db.VarChar(20)
-  testName                String      @db.VarChar(200)
-  testNameEn              String?     @db.VarChar(200)
-  testCategory            String      @db.VarChar(30)
-  normalRangeMin          Decimal?    @db.Decimal(10, 2)
-  normalRangeMax          Decimal?    @db.Decimal(10, 2)
-  normalRangeText         String?     @db.VarChar(100)
-  unit                    String?     @db.VarChar(50)
-  sampleType              String?     @db.VarChar(50)
-  fastingRequired         Boolean     @default(false)
-  preparationInstructions String?     @db.Text
-  turnaroundTimeHours     Int?
-  price                   Decimal?    @db.Decimal(10, 2)
-  isActive                Boolean     @default(true)
-
-  createdAt DateTime @default(now())
-
-  results LabResult[]
-
-  @@index([testCode])
-  @@index([testCategory])
-  @@index([isActive])
-  @@map("lab_tests")
-}
-
-model LabOrder {
-  id                 Int            @id @default(autoincrement())
-  visitId            Int
-  patientId          Int
-  doctorId           Int
-  orderDate          DateTime       @default(now()) @db.Date
-  orderReason        String?        @db.VarChar(500)
-  priority           String         @default("عادي") @db.VarChar(20)
-  status             String         @default("معلق") @db.VarChar(30)
-  sampleCollectedAt  DateTime?
-  sampleReceivedAt   DateTime?
-  expectedResultDate DateTime?      @db.Date
-  labName            String?        @db.VarChar(100)
-  externalLabOrderId String?        @db.VarChar(100)
-  notes              String?        @db.Text
-
-  createdAt DateTime @default(now())
-
-  visit   MedicalVisit @relation(fields: [visitId], references: [id])
-  patient Patient      @relation(fields: [patientId], references: [id])
-  doctor  Doctor       @relation(fields: [doctorId], references: [id])
-  results LabResult[]
-
-  @@index([patientId])
-  @@index([status])
-  @@index([orderDate])
-  @@index([doctorId])
-  @@index([visitId])
-  @@map("lab_orders")
-}
-
-model LabResult {
-  id               Int           @id @default(autoincrement())
-  orderId          Int
-  testId           Int
-  resultValue      String?       @db.VarChar(200)
-  resultNumeric    Decimal?      @db.Decimal(10, 2)
-  resultStatus     String?      @db.VarChar(30)
-  resultDate       DateTime?     @db.Date
-  resultTime       DateTime?
-  performedBy      String?       @db.VarChar(100)
-  verifiedBy       String?       @db.VarChar(100)
-  isCritical       Boolean       @default(false)
-  criticalNotified Boolean       @default(false)
-  notes            String?       @db.Text
-
-  createdAt DateTime @default(now())
-
-  order LabOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  test  LabTest  @relation(fields: [testId], references: [id])
-
-  @@index([orderId])
-  @@index([testId])
-  @@index([resultDate])
-  @@index([resultStatus])
-  @@index([isCritical])
-  @@map("lab_results")
-}
-
-// ====================================
-// 1️⃣4️⃣ الأشعة والسونار
-// ====================================
-
-model RadiologyOrder {
-  id          Int           @id @default(autoincrement())
-  visitId     Int
-  patientId   Int
-  doctorId    Int
-  pregnancyId Int?
-  examType    String         @db.VarChar(30)
-  examArea    String?       @db.VarChar(100)
-  examReason  String?       @db.VarChar(500)
-  orderDate   DateTime      @default(now()) @db.Date
-  examDate    DateTime?     @db.Date
-  examTime    DateTime?
-
-  // معلومات الحمل
-  gestationalAgeAtScan Decimal? @db.Decimal(3, 1)
-
-  // النتائج
-  findings     String?         @db.Text
-  impression   String?         @db.Text
-  measurements String?         @db.Text
-  status       String          @default("معلق") @db.VarChar(30)
-
-  // الملفات
-  imagePath    String? @db.VarChar(500)
-  reportPath   String? @db.VarChar(500)
-  dicomStudyId String? @db.VarChar(100)
-  performedBy  String? @db.VarChar(100)
-  reportedBy   String? @db.VarChar(100)
-  notes        String? @db.Text
-
-  createdAt DateTime @default(now())
-
-  visit     MedicalVisit     @relation(fields: [visitId], references: [id])
-  patient   Patient          @relation(fields: [patientId], references: [id])
-  doctor    Doctor           @relation(fields: [doctorId], references: [id])
-  pregnancy PregnancyRecord? @relation(fields: [pregnancyId], references: [id])
-
-  @@index([patientId])
-  @@index([pregnancyId])
-  @@index([orderDate])
-  @@index([status])
-  @@index([doctorId])
-  @@index([visitId])
-  @@map("radiology_orders")
-}
-
-// ====================================
-// 1️⃣5️⃣ العمليات الجراحية
-// ====================================
-
-model Surgery {
-  id                 Int         @id @default(autoincrement())
-  patientId          Int
-  doctorId           Int
-  anesthesiologistId Int?
-  surgeryName        String      @db.VarChar(200)
-  surgeryType        String      @db.VarChar(30)
-  surgeryCategory    String?     @db.VarChar(100)
-
-  // التخطيط
-  plannedDate             DateTime? @db.Date
-  scheduledDate           DateTime  @db.Date
-  scheduledTime           DateTime?
-  expectedDurationMinutes Int?
-
-  // التنفيذ
-  actualSurgeryDate     DateTime? @db.Date
-  actualStartTime       DateTime?
-  actualEndTime         DateTime?
-  actualDurationMinutes Int?
-
-  // تفاصيل العملية
-  preOpDiagnosis   String?         @db.VarChar(500)
-  postOpDiagnosis  String?         @db.VarChar(500)
-  procedureDetails String?         @db.Text
-  anesthesiaType   String?         @db.VarChar(30)
-  incisionType     String?         @db.VarChar(100)
-  surgicalApproach String?         @db.VarChar(100)
-
-  // النتائج
-  surgicalFindings    String? @db.Text
-  specimensSent       String? @db.Text
-  bloodLossMl         Int?
-  transfusionRequired Boolean @default(false)
-  complications       String? @db.Text
-
-  // التعليمات
-  postOpInstructions    String? @db.Text
-  medicationsPrescribed String? @db.Text
-  followupSchedule      String? @db.VarChar(500)
-  expectedRecoveryDays  Int?
-
-  // الحالة
-  status             String         @db.VarChar(30)
-  cancellationReason String?       @db.VarChar(500)
-
-  // الفريق الطبي
-  assistingDoctors String? @db.Text
-  nursingStaff     String? @db.Text
-  operatingRoom    String? @db.VarChar(50)
-  notes            String? @db.Text
+model Template {
+  id           Int     @id @default(autoincrement())
+  doctorId     Int
+  templateType String  @db.VarChar(100) // free text: "روشتة"، "تشخيص"، "زيارة"، إلخ
+  templateName String  @db.VarChar(200)
+  category     String? @db.VarChar(100) // free text: "حمل"، "التهابات"، إلخ (اختياري)
+  content      String  @db.Text // JSON string
+  isActive     Boolean @default(true)
+  usageCount   Int     @default(0)
+  isFavorite   Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  patient          Patient           @relation(fields: [patientId], references: [id])
-  doctor           Doctor            @relation(fields: [doctorId], references: [id])
-  anesthesiologist Doctor?           @relation("Anesthesiologist", fields: [anesthesiologistId], references: [id])
-  followups        SurgeryFollowup[]
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
-  @@index([patientId])
   @@index([doctorId])
-  @@index([scheduledDate])
-  @@index([status])
-  @@index([surgeryType])
-  @@map("surgeries")
+  @@index([doctorId, isFavorite])
+  @@index([doctorId, usageCount])
+  @@map("templates")
 }
 
 // ====================================
-// 1️⃣6️⃣ متابعة ما بعد الجراحة
-// ====================================
-
-model SurgeryFollowup {
-  id                   Int            @id @default(autoincrement())
-  surgeryId            Int
-  visitId              Int?
-  followupDate         DateTime       @db.Date
-  daysPostSurgery      Int?
-  woundCondition       String?        @db.VarChar(100)
-  painLevel            Int? // 0-10
-  complications        String?        @db.Text
-  healingStatus        String?        @db.VarChar(20)
-  suturesRemoved       Boolean        @default(false)
-  suturesRemovalDate   DateTime?      @db.Date
-  medicationsContinued String?        @db.Text
-  recommendations      String?        @db.Text
-  nextFollowupDate     DateTime?      @db.Date
-  notes                String?        @db.Text
-
-  createdAt DateTime @default(now())
-
-  surgery Surgery       @relation(fields: [surgeryId], references: [id])
-  visit   MedicalVisit? @relation(fields: [visitId], references: [id])
-
-  @@index([surgeryId])
-  @@index([visitId])
-  @@index([followupDate])
-  @@map("surgery_followup")
-}
-
-// ====================================
-// 1️⃣7️⃣ الخدمات والأسعار
-// ====================================
-
-model Service {
-  id              Int             @id @default(autoincrement())
-  serviceCode     String          @unique @db.VarChar(20)
-  serviceName     String          @db.VarChar(200)
-  serviceCategory String          @db.VarChar(30)
-  description     String?         @db.VarChar(500)
-  basePrice       Decimal         @db.Decimal(10, 2)
-  insurancePrice  Decimal?        @db.Decimal(10, 2)
-  durationMinutes Int?
-  isTaxable       Boolean         @default(true)
-  taxPercentage   Decimal         @default(14) @db.Decimal(5, 2)
-  isActive        Boolean         @default(true)
-
-  createdAt DateTime @default(now())
-
-  invoiceDetails InvoiceDetail[]
-
-  @@index([serviceCode])
-  @@index([serviceCategory])
-  @@index([isActive])
-  @@map("services")
-}
-
-// ====================================
-// 1️⃣8️⃣ الفواتير
+// 1️⃣3️⃣ الفواتير (Invoices)
 // ====================================
 
 model Invoice {
-  id            Int       @id @default(autoincrement())
-  invoiceNumber String    @unique @db.VarChar(50)
+  id            Int    @id @default(autoincrement())
+  invoiceNumber String @unique @db.VarChar(50) // INV-2024-001
+
+  // الربط
+  visitId       Int? @unique
+  appointmentId Int? @unique
   patientId     Int
-  visitId       Int?
-  invoiceDate   DateTime  @default(now()) @db.Date
-  dueDate       DateTime? @db.Date
+  doctorId      Int
 
-  // المبالغ
-  subtotalAmount        Decimal @db.Decimal(10, 2)
-  discountPercentage    Decimal @default(0) @db.Decimal(5, 2)
-  discountAmount        Decimal @default(0) @db.Decimal(10, 2)
-  discountReason        String? @db.VarChar(200)
-  taxAmount             Decimal @default(0) @db.Decimal(10, 2)
-  totalAmount           Decimal @db.Decimal(10, 2)
-  insuranceCoverage     Decimal @default(0) @db.Decimal(10, 2)
-  patientResponsibility Decimal @db.Decimal(10, 2)
-  netAmount             Decimal @db.Decimal(10, 2)
+  invoiceDate DateTime  @default(now()) @db.Date
+  dueDate     DateTime? @db.Date // تاريخ الاستحقاق
 
-  // الحالة
-  paymentStatus   String         @default("غير مدفوع") @db.VarChar(30)
-  paidAmount      Decimal       @default(0) @db.Decimal(10, 2)
-  remainingAmount Decimal?      @db.Decimal(10, 2)
+  // تفاصيل المبالغ
+  subtotal    Decimal @default(0) @db.Decimal(10, 2) // المجموع قبل الخصم
+  discount    Decimal @default(0) @db.Decimal(10, 2) // الخصم
+  totalAmount Decimal @db.Decimal(10, 2) // الإجمالي النهائي
 
-  // معلومات التأمين
-  insuranceId          Int?
-  insuranceClaimNumber String? @db.VarChar(100)
-  billingNotes         String? @db.Text
-  notes                String? @db.Text
+  // حالة الدفع
+  paidAmount      Decimal @default(0) @db.Decimal(10, 2) // المدفوع
+  remainingAmount Decimal @db.Decimal(10, 2) // المتبقي
+  paymentStatus   String  @default("UNPAID") @db.VarChar(20) // UNPAID, PARTIAL, PAID
+
+  // معلومات إضافية
+  notes           String?  @db.Text
+  insuranceClaim  Boolean  @default(false) // هل فيه مطالبة تأمين؟
+  insuranceAmount Decimal? @db.Decimal(10, 2) // مبلغ التأمين
+
+  isCancelled  Boolean   @default(false)
+  cancelledAt  DateTime?
+  cancelReason String?   @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  createdBy Int?
 
-  patient   Patient           @relation(fields: [patientId], references: [id])
-  visit     MedicalVisit?     @relation(fields: [visitId], references: [id])
-  insurance InsuranceCompany? @relation(fields: [insuranceId], references: [id])
-  details   InvoiceDetail[]
-  payments  Payment[]
+  // العلاقات
+  patient     Patient       @relation(fields: [patientId], references: [id])
+  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  visit       MedicalVisit? @relation(fields: [visitId], references: [id])
+  appointment Appointment?  @relation(fields: [appointmentId], references: [id])
 
+  items    InvoiceItem[] // بنود الفاتورة
+  payments Payment[] // الدفعات
+
+  @@index([invoiceNumber])
   @@index([patientId])
+  @@index([doctorId])
   @@index([invoiceDate])
   @@index([paymentStatus])
-  @@index([invoiceNumber])
-  @@index([insuranceId])
+  @@index([isCancelled])
   @@map("invoices")
 }
 
-model InvoiceDetail {
-  id             Int      @id @default(autoincrement())
-  invoiceId      Int
-  serviceId      Int?
-  itemType       String      @db.VarChar(30)
-  description    String   @db.VarChar(200)
-  quantity       Int      @default(1)
-  unitPrice      Decimal  @db.Decimal(10, 2)
-  discountAmount Decimal  @default(0) @db.Decimal(10, 2)
-  taxAmount      Decimal  @default(0) @db.Decimal(10, 2)
-  totalPrice     Decimal  @db.Decimal(10, 2)
-  notes          String?  @db.VarChar(500)
+// ====================================
+// 1️⃣4️⃣ بنود الفاتورة (Invoice Items)
+// ====================================
 
-  invoice Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  service Service? @relation(fields: [serviceId], references: [id])
+model InvoiceItem {
+  id        Int @id @default(autoincrement())
+  invoiceId Int
+
+  itemType    String  @db.VarChar(50) // CONSULTATION, ULTRASOUND, PROCEDURE, MEDICATION, LAB_TEST
+  description String  @db.VarChar(200) // "كشف عادي", "سونار 3D"
+  quantity    Int     @default(1)
+  unitPrice   Decimal @db.Decimal(10, 2) // السعر للوحدة
+  totalPrice  Decimal @db.Decimal(10, 2) // quantity * unitPrice
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
-  @@map("invoice_details")
+  @@index([itemType])
+  @@map("invoice_items")
 }
 
 // ====================================
-// 1️⃣9️⃣ المدفوعات
+// 1️⃣5️⃣ الدفعات (Payments)
 // ====================================
 
 model Payment {
-  id            Int           @id @default(autoincrement())
-  paymentNumber String?       @unique @db.VarChar(50)
-  invoiceId     Int
-  paymentDate   DateTime      @default(now()) @db.Date
-  paymentTime   DateTime      @default(now())
-  paymentAmount Decimal       @db.Decimal(10, 2)
-  paymentMethod String           @db.VarChar(30)
+  id        Int @id @default(autoincrement())
+  invoiceId Int
+
+  paymentNumber String   @unique @db.VarChar(50) // PAY-2024-001
+  paymentDate   DateTime @default(now()) @db.Date
+  paymentTime   DateTime @default(now()) @db.Time
+
+  amount        Decimal @db.Decimal(10, 2) // المبلغ المدفوع
+  paymentMethod String  @db.VarChar(50) // CASH, CARD, BANK_TRANSFER, INSURANCE
 
   // تفاصيل الدفع
-  referenceNumber String?   @db.VarChar(100)
-  cardLast4Digits String?   @db.VarChar(4)
-  bankName        String?   @db.VarChar(100)
-  checkNumber     String?   @db.VarChar(50)
-  checkDate       DateTime? @db.Date
+  referenceNumber String? @db.VarChar(100) // رقم المرجع (للكارت أو التحويل)
+  bankName        String? @db.VarChar(100) // اسم البنك
+  checkNumber     String? @db.VarChar(50) // رقم الشيك
 
-  // المعالجة
-  processedBy     Int?
-  receiptNumber   String? @db.VarChar(50)
-  isRefund        Boolean @default(false)
-  refundReason    String? @db.VarChar(500)
-  parentPaymentId Int?
-  notes           String? @db.VarChar(500)
+  receivedById Int? // المستخدم اللي استلم الفلوس
+  notes        String? @db.Text
+
+  isRefunded   Boolean   @default(false)
+  refundedAt   DateTime?
+  refundReason String?   @db.Text
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  invoice       Invoice   @relation(fields: [invoiceId], references: [id])
-  parentPayment Payment?  @relation("PaymentRefund", fields: [parentPaymentId], references: [id])
-  refunds       Payment[] @relation("PaymentRefund")
+  invoice    Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  receivedBy User?   @relation(fields: [receivedById], references: [id])
 
   @@index([invoiceId])
   @@index([paymentDate])
-  @@index([paymentNumber])
   @@index([paymentMethod])
+  @@index([isRefunded])
+  @@index([receivedById])
   @@map("payments")
 }
-
-// ====================================
-// 2️⃣0️⃣ شركات التأمين
-// ====================================
-
-model InsuranceCompany {
-  id            Int     @id @default(autoincrement())
-  companyCode   String  @unique @db.VarChar(20)
-  companyName   String  @db.VarChar(200)
-  companyNameEn String? @db.VarChar(200)
-  contactPerson String? @db.VarChar(100)
-  phone         String? @db.VarChar(15)
-  phone2        String? @db.VarChar(15)
-  email         String? @db.VarChar(100)
-  website       String? @db.VarChar(200)
-  address       String? @db.VarChar(200)
-  city          String? @db.VarChar(50)
-
-  // شروط التغطية
-  coveragePercentage  Decimal? @db.Decimal(5, 2)
-  copayAmount         Decimal? @db.Decimal(10, 2)
-  deductibleAmount    Decimal? @db.Decimal(10, 2)
-  maxCoveragePerVisit Decimal? @db.Decimal(10, 2)
-  maxCoverageAnnual   Decimal? @db.Decimal(10, 2)
-  approvalRequired    Boolean  @default(true)
-
-  // التسوية المالية
-  paymentTerms      String?   @db.VarChar(200)
-  paymentCycleDays  Int?
-  contractStartDate DateTime? @db.Date
-  contractEndDate   DateTime? @db.Date
-  isActive          Boolean   @default(true)
-  notes             String?   @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  patientInsurance PatientInsurance[]
-  invoices         Invoice[]
-
-  @@map("insurance_companies")
-}
-
-// ====================================
-// 2️⃣1️⃣ تأمين المرضى
-// ====================================
-
-model PatientInsurance {
-  id                       Int       @id @default(autoincrement())
-  patientId                Int
-  insuranceId              Int
-  policyNumber             String    @db.VarChar(100)
-  memberId                 String?   @db.VarChar(100)
-  groupNumber              String?   @db.VarChar(100)
-  policyHolderName         String?   @db.VarChar(100)
-  relationshipToHolder     String?   @db.VarChar(50)
-  startDate                DateTime  @db.Date
-  endDate                  DateTime? @db.Date
-  coverageType             String?   @db.VarChar(100)
-  coverageDetails          String?   @db.Text
-  preauthorizationRequired Boolean   @default(true)
-  isPrimary                Boolean   @default(true)
-  isActive                 Boolean   @default(true)
-  verificationDate         DateTime? @db.Date
-  verifiedBy               Int?
-  notes                    String?   @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  patient   Patient          @relation(fields: [patientId], references: [id])
-  insurance InsuranceCompany @relation(fields: [insuranceId], references: [id])
-
-  @@index([patientId])
-  @@index([insuranceId])
-  @@index([policyNumber])
-  @@index([isActive])
-  @@index([isPrimary])
-  @@map("patient_insurance")
-}
-
-// ====================================
-// 2️⃣2️⃣ الموظفين
-// ====================================
-
-model Staff {
-  id                    Int            @id @default(autoincrement())
-  employeeNumber        String         @unique @db.VarChar(20)
-  nationalId            String         @unique @db.VarChar(14)
-  firstName             String         @db.VarChar(50)
-  lastName              String         @db.VarChar(50)
-  position              String         @db.VarChar(30)
-  department            String?        @db.VarChar(100)
-  phone                 String         @db.VarChar(15)
-  email                 String?        @db.VarChar(100)
-  address               String?        @db.VarChar(200)
-  hireDate              DateTime       @db.Date
-  terminationDate       DateTime?      @db.Date
-  employmentType        String         @db.VarChar(30)
-  salary                Decimal?       @db.Decimal(10, 2)
-  salaryCurrency        String         @default("EGP") @db.VarChar(3)
-  workingHoursPerWeek   Int?
-  emergencyContactName  String?        @db.VarChar(100)
-  emergencyContactPhone String?        @db.VarChar(15)
-  isActive              Boolean        @default(true)
-  notes                 String?        @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  systemUser SystemUser?
-
-  @@index([employeeNumber])
-  @@index([nationalId])
-  @@index([position])
-  @@index([isActive])
-  @@index([department])
-  @@map("staff")
-}
-
-// ====================================
-// 2️⃣3️⃣ الصلاحيات والأدوار
-// ====================================
-
-model Permission {
-  id             Int     @id @default(autoincrement())
-  permissionName String  @unique @db.VarChar(100)
-  permissionCode String  @unique @db.VarChar(50)
-  description    String? @db.VarChar(500)
-  module         String? @db.VarChar(50)
-  isActive       Boolean @default(true)
-
-  roles RolePermission[]
-
-  @@index([permissionCode])
-  @@index([module])
-  @@index([isActive])
-  @@map("permissions")
-}
-
-model Role {
-  id          Int     @id @default(autoincrement())
-  roleName    String  @unique @db.VarChar(100)
-  roleCode    String  @unique @db.VarChar(50)
-  description String? @db.VarChar(500)
-  isActive    Boolean @default(true)
-
-  createdAt DateTime @default(now())
-
-  permissions RolePermission[]
-  users       SystemUser[]
-
-  @@index([roleCode])
-  @@index([isActive])
-  @@map("roles")
-}
-
-model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  grantedAt    DateTime @default(now())
-  grantedBy    Int?
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId])
-  @@index([roleId])
-  @@index([permissionId])
-  @@map("role_permissions")
-}
-
-// ====================================
-// 2️⃣4️⃣ المستخدمين
-// ====================================
-
-model SystemUser {
-  id                  Int       @id @default(autoincrement())
-  username            String    @unique @db.VarChar(50)
-  passwordHash        String    @db.VarChar(200)
-  passwordSalt        String?   @db.VarChar(100)
-  email               String?   @unique @db.VarChar(100)
-  userType            String       @db.VarChar(30)
-  roleId              Int?
-  doctorId            Int?      @unique
-  staffId             Int?      @unique
-  isActive            Boolean   @default(true)
-  mustChangePassword  Boolean   @default(false)
-  failedLoginAttempts Int       @default(0)
-  accountLocked       Boolean   @default(false)
-  lockedUntil         DateTime?
-  lastLogin           DateTime?
-  lastPasswordChange  DateTime?
-  passwordExpiryDate  DateTime? @db.Date
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  role   Role?   @relation(fields: [roleId], references: [id])
-  doctor Doctor? @relation(fields: [doctorId], references: [id])
-  staff  Staff?  @relation(fields: [staffId], references: [id])
-
-  auditLogs AuditLog[]
-
-  @@index([username])
-  @@index([email])
-  @@index([userType])
-  @@index([isActive])
-  @@index([roleId])
-  @@map("system_users")
-}
-
-// ====================================
-// 2️⃣5️⃣ سجل النشاطات (Audit Log)
-// ====================================
-
-model AuditLog {
-  id              Int        @id @default(autoincrement())
-  userId          Int?
-  actionType      String        @db.VarChar(30)
-  tableName       String?    @db.VarChar(100)
-  recordId        Int?
-  oldValue        String?    @db.Text
-  newValue        String?    @db.Text
-  ipAddress       String?    @db.VarChar(45)
-  userAgent       String?    @db.VarChar(500)
-  actionTimestamp DateTime   @default(now())
-
-  user SystemUser? @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([tableName, recordId])
-  @@index([actionTimestamp])
-  @@index([actionType])
-  @@map("audit_log")
-}
-
-// All enums moved to src/lib/enumdb.ts

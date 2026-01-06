@@ -3,6 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PregnancyFilters, PregnancyListItem } from "./types";
 import { calculateGestationalAge } from "./utils";
+import { calculateGestationalAgeWeeks } from "../pregnancy-followups/utils";
 
 function buildWhereClause(filters: PregnancyFilters) {
   const where: any = {};
@@ -50,7 +51,7 @@ export async function getPregnanciesList(
       },
       followups: {
         select: {
-          gestationalAgeWeeks: true,
+          visitDate: true,
         },
         orderBy: {
           visitDate: "desc",
@@ -74,10 +75,12 @@ export async function getPregnanciesList(
     eddDate: pregnancy.eddDate,
     pregnancyStatus: pregnancy.pregnancyStatus,
     riskLevel: pregnancy.riskLevel,
-    gestationalAgeWeeks:
-      pregnancy.followups[0]?.gestationalAgeWeeks
-        ? Number(pregnancy.followups[0].gestationalAgeWeeks)
-        : calculateGestationalAge(pregnancy.lmpDate),
+    gestationalAgeWeeks: pregnancy.followups[0]?.visitDate
+      ? calculateGestationalAgeWeeks(
+          pregnancy.lmpDate,
+          pregnancy.followups[0].visitDate
+        )
+      : calculateGestationalAge(pregnancy.lmpDate),
     deliveryDate: pregnancy.deliveryDate,
   }));
 }
@@ -104,11 +107,6 @@ export async function getPregnancyById(
         },
         orderBy: {
           visitDate: "desc",
-        },
-      },
-      radiologyOrders: {
-        orderBy: {
-          orderDate: "desc",
         },
       },
     },

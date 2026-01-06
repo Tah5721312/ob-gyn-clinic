@@ -10,21 +10,15 @@ import {
 
 /**
  * GET /api/prescriptions
- * جلب قائمة الروشتات مع البحث والفلترة
+ * جلب قائمة الروشتات
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
 
     const filters: PrescriptionFilters = {
-      search: searchParams.get("search") || undefined,
-      patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
-      doctorId: searchParams.get("doctorId") ? parseInt(searchParams.get("doctorId")!) : undefined,
-      prescriptionDate: searchParams.get("prescriptionDate") ? new Date(searchParams.get("prescriptionDate")!) : undefined,
-      isChronicMedication:
-        searchParams.get("isChronicMedication") !== null && searchParams.get("isChronicMedication") !== undefined
-          ? searchParams.get("isChronicMedication") === "true"
-          : undefined,
+      visitId: searchParams.get("visitId") ? parseInt(searchParams.get("visitId")!) : undefined,
+      followupId: searchParams.get("followupId") ? parseInt(searchParams.get("followupId")!) : undefined,
     };
 
     const prescriptions = await getPrescriptionsList(prisma, filters);
@@ -55,21 +49,28 @@ export async function POST(request: NextRequest) {
   try {
     const body: CreatePrescriptionData = await request.json();
 
-    if (!body.visitId || !body.patientId || !body.doctorId) {
+    if (!body.items || body.items.length === 0) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: visitId, patientId, doctorId",
+          error: "يجب إضافة على الأقل دواء واحد",
         },
         { status: 400 }
       );
     }
 
-    const prescription = await createPrescription(prisma, {
-      ...body,
-      prescriptionDate: body.prescriptionDate ? new Date(body.prescriptionDate) : undefined,
-      validUntil: body.validUntil ? new Date(body.validUntil) : undefined,
-    });
+    // السماح بروشتة مستقلة (بدون visitId أو followupId)
+    // if (!body.visitId && !body.followupId) {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error: "يجب تحديد visitId أو followupId",
+    //     },
+    //     { status: 400 }
+    //   );
+    // }
+
+    const prescription = await createPrescription(prisma, body);
 
     return NextResponse.json(
       {

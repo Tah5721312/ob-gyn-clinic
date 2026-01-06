@@ -5,10 +5,7 @@ export interface PregnancyFollowupListItem {
   pregnancyId: number;
   visitId: number;
   visitDate: Date;
-  visitNumber: number | null;
   gestationalAgeWeeks: number | null;
-  fundalHeight: number | null;
-  fetalHeartRate: number | null;
 }
 
 export interface PregnancyFollowupFilters {
@@ -21,15 +18,7 @@ export interface CreatePregnancyFollowupData {
   pregnancyId: number;
   visitId: number;
   visitDate: Date;
-  visitNumber?: number;
-  gestationalAgeWeeks?: number;
-  gestationalAgeDays?: number;
-  fundalHeight?: number;
-  fetalHeartRate?: number;
-  fetalMovement?: string;
-  fetalPosition?: string;
-  cervicalDilation?: number;
-  cervicalEffacement?: number;
+  // gestationalAgeWeeks سيتم حسابه تلقائياً من lmpDate و visitDate في الـ backend
   maternalWeight?: number;
   weightGain?: number;
   bloodPressure?: string;
@@ -45,24 +34,14 @@ export interface CreatePregnancyFollowupData {
   placentalLocation?: string;
   placentalGrade?: string;
   complications?: string;
-  riskFactors?: string;
-  recommendations?: string;
   medicationsPrescribed?: string;
   nextVisitDate?: Date;
-  nextVisitType?: string;
   notes?: string;
 }
 
 export interface UpdatePregnancyFollowupData {
-  visitNumber?: number;
-  gestationalAgeWeeks?: number;
-  gestationalAgeDays?: number;
-  fundalHeight?: number;
-  fetalHeartRate?: number;
-  fetalMovement?: string;
-  fetalPosition?: string;
-  cervicalDilation?: number;
-  cervicalEffacement?: number;
+  visitDate?: Date;
+  // gestationalAgeWeeks سيتم حسابه تلقائياً من lmpDate و visitDate في الـ backend
   maternalWeight?: number;
   weightGain?: number;
   bloodPressure?: string;
@@ -78,11 +57,8 @@ export interface UpdatePregnancyFollowupData {
   placentalLocation?: string;
   placentalGrade?: string;
   complications?: string;
-  riskFactors?: string;
-  recommendations?: string;
   medicationsPrescribed?: string;
   nextVisitDate?: Date;
-  nextVisitType?: string;
   notes?: string;
 }
 

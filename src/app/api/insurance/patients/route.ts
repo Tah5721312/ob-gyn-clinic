@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  getPatientInsurancesList,
-  createPatientInsurance,
-  CreatePatientInsuranceData,
+  getInsurancesByPatientId,
+  createInsurance,
+  CreateInsuranceData,
 } from "@/lib/insurance";
 
 /**
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const insurances = await getPatientInsurancesList(prisma, parseInt(patientId));
+    const insurances = await getInsurancesByPatientId(prisma, parseInt(patientId));
 
     return NextResponse.json({
       success: true,
@@ -46,22 +46,21 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: CreatePatientInsuranceData = await request.json();
+    const body: CreateInsuranceData = await request.json();
 
-    if (!body.patientId || !body.insuranceId || !body.policyNumber || !body.startDate) {
+    if (!body.patientId || !body.insuranceCompany || !body.policyNumber || !body.expiryDate) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: patientId, insuranceId, policyNumber, startDate",
+          error: "البيانات المطلوبة: patientId, insuranceCompany, policyNumber, expiryDate",
         },
         { status: 400 }
       );
     }
 
-    const insurance = await createPatientInsurance(prisma, {
+    const insurance = await createInsurance(prisma, {
       ...body,
-      startDate: new Date(body.startDate),
-      endDate: body.endDate ? new Date(body.endDate) : undefined,
+      expiryDate: new Date(body.expiryDate),
     });
 
     return NextResponse.json(
@@ -82,4 +81,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

@@ -7,12 +7,20 @@ export interface InvoiceListItem {
   patientName: string;
   visitId: number | null;
   invoiceDate: Date;
+  // المبالغ الإجمالية
+  subtotalAmount: number;
+  discountAmount: number;
+  taxAmount: number;
   totalAmount: number;
+  insuranceCoverage: number;
+  patientResponsibility: number;
+  netAmount: number;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: string;
   insuranceId: number | null;
   insuranceName: string | null;
+  itemsCount: number;
 }
 
 export interface InvoiceFilters {

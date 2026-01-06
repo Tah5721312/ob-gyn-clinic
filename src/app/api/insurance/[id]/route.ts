@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
-  getInsuranceCompanyById,
-  updateInsuranceCompany,
-  deleteInsuranceCompany,
-  UpdateInsuranceCompanyData,
+  getInsuranceById,
+  updateInsurance,
+  deleteInsurance,
+  UpdateInsuranceData,
 } from "@/lib/insurance";
 
 /**
  * GET /api/insurance/[id]
- * جلب شركة تأمين واحدة
+ * جلب تأمين واحد
  */
 export async function GET(
   request: NextRequest,
@@ -20,26 +20,26 @@ export async function GET(
 
     if (isNaN(insuranceId)) {
       return NextResponse.json(
-        { success: false, error: "معرف شركة التأمين غير صحيح" },
+        { success: false, error: "معرف التأمين غير صحيح" },
         { status: 400 }
       );
     }
 
-    const company = await getInsuranceCompanyById(prisma, insuranceId);
+    const insurance = await getInsuranceById(prisma, insuranceId);
 
-    if (!company) {
+    if (!insurance) {
       return NextResponse.json(
-        { success: false, error: "شركة التأمين غير موجودة" },
+        { success: false, error: "التأمين غير موجود" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: company,
+      data: insurance,
     });
   } catch (error: any) {
-    console.error("Error fetching insurance company:", error);
+    console.error("Error fetching insurance:", error);
     return NextResponse.json(
       {
         success: false,
@@ -52,7 +52,7 @@ export async function GET(
 
 /**
  * PUT /api/insurance/[id]
- * تحديث شركة تأمين
+ * تحديث تأمين
  */
 export async function PUT(
   request: NextRequest,
@@ -63,29 +63,28 @@ export async function PUT(
 
     if (isNaN(insuranceId)) {
       return NextResponse.json(
-        { success: false, error: "معرف شركة التأمين غير صحيح" },
+        { success: false, error: "معرف التأمين غير صحيح" },
         { status: 400 }
       );
     }
 
-    const body: UpdateInsuranceCompanyData = await request.json();
+    const body: UpdateInsuranceData = await request.json();
 
-    const company = await updateInsuranceCompany(prisma, insuranceId, {
+    const insurance = await updateInsurance(prisma, insuranceId, {
       ...body,
-      contractStartDate: body.contractStartDate ? new Date(body.contractStartDate) : undefined,
-      contractEndDate: body.contractEndDate ? new Date(body.contractEndDate) : undefined,
+      expiryDate: body.expiryDate ? new Date(body.expiryDate) : undefined,
     });
 
     return NextResponse.json({
       success: true,
-      data: company,
+      data: insurance,
     });
   } catch (error: any) {
-    console.error("Error updating insurance company:", error);
+    console.error("Error updating insurance:", error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "حدث خطأ أثناء تحديث شركة التأمين",
+        error: error.message || "حدث خطأ أثناء تحديث التأمين",
       },
       { status: 500 }
     );
@@ -94,7 +93,7 @@ export async function PUT(
 
 /**
  * DELETE /api/insurance/[id]
- * حذف شركة تأمين
+ * حذف تأمين
  */
 export async function DELETE(
   request: NextRequest,
@@ -105,26 +104,25 @@ export async function DELETE(
 
     if (isNaN(insuranceId)) {
       return NextResponse.json(
-        { success: false, error: "معرف شركة التأمين غير صحيح" },
+        { success: false, error: "معرف التأمين غير صحيح" },
         { status: 400 }
       );
     }
 
-    await deleteInsuranceCompany(prisma, insuranceId);
+    await deleteInsurance(prisma, insuranceId);
 
     return NextResponse.json({
       success: true,
-      message: "تم حذف شركة التأمين بنجاح",
+      message: "تم حذف التأمين بنجاح",
     });
   } catch (error: any) {
-    console.error("Error deleting insurance company:", error);
+    console.error("Error deleting insurance:", error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "حدث خطأ أثناء حذف شركة التأمين",
+        error: error.message || "حدث خطأ أثناء حذف التأمين",
       },
       { status: 500 }
     );
   }
 }
-

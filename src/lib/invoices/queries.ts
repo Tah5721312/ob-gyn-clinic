@@ -2,7 +2,6 @@
 
 import { PrismaClient } from "@prisma/client";
 import { InvoiceFilters, InvoiceListItem, PaymentListItem } from "./types";
-import { calculateRemainingAmount } from "./utils";
 
 function buildWhereClause(filters: InvoiceFilters) {
   const where: any = {};
@@ -47,12 +46,13 @@ export async function getInvoicesList(
           id: true,
           firstName: true,
           lastName: true,
-        },
-      },
-      insurance: {
-        select: {
-          id: true,
-          companyName: true,
+          insuranceId: true,
+          insurance: {
+            select: {
+              id: true,
+              insuranceCompany: true,
+            },
+          },
         },
       },
     },
@@ -63,6 +63,18 @@ export async function getInvoicesList(
     skip: offset,
   });
 
+  // جلب عدد البنود لكل فاتورة
+  const invoiceIds = invoices.map((inv) => inv.id);
+  const itemsCounts = await prisma.invoiceItem.groupBy({
+    by: ["invoiceId"],
+    where: { invoiceId: { in: invoiceIds } },
+    _count: { id: true },
+  });
+
+  const itemsCountMap = new Map(
+    itemsCounts.map((item) => [item.invoiceId, item._count.id])
+  );
+
   return invoices.map((invoice) => ({
     id: invoice.id,
     invoiceNumber: invoice.invoiceNumber,
@@ -70,15 +82,20 @@ export async function getInvoicesList(
     patientName: `${invoice.patient.firstName} ${invoice.patient.lastName}`,
     visitId: invoice.visitId,
     invoiceDate: invoice.invoiceDate,
+    // المبالغ الإجمالية - مطابقة schema
+    subtotalAmount: Number(invoice.subtotal),
+    discountAmount: Number(invoice.discount),
+    taxAmount: 0, // لا يوجد في schema
     totalAmount: Number(invoice.totalAmount),
+    insuranceCoverage: Number(invoice.insuranceAmount || 0),
+    patientResponsibility: Number(invoice.totalAmount) - Number(invoice.insuranceAmount || 0),
+    netAmount: Number(invoice.totalAmount),
     paidAmount: Number(invoice.paidAmount),
-    remainingAmount: calculateRemainingAmount(
-      Number(invoice.totalAmount),
-      Number(invoice.paidAmount)
-    ),
+    remainingAmount: Number(invoice.remainingAmount),
     paymentStatus: invoice.paymentStatus,
-    insuranceId: invoice.insuranceId,
-    insuranceName: invoice.insurance?.companyName || null,
+    insuranceId: invoice.patient.insuranceId,
+    insuranceName: invoice.patient.insurance?.insuranceCompany || null,
+    itemsCount: itemsCountMap.get(invoice.id) || 0,
   }));
 }
 
@@ -97,12 +114,15 @@ export async function getInvoiceById(
   return await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
-      patient: true,
-      visit: true,
-      insurance: true,
-      details: {
+      patient: {
         include: {
-          service: true,
+          insurance: true,
+        },
+      },
+      visit: true,
+      items: {
+        orderBy: {
+          id: "asc",
         },
       },
       payments: {
@@ -154,10 +174,10 @@ export async function getPaymentsList(
     invoiceId: payment.invoiceId,
     invoiceNumber: payment.invoice.invoiceNumber,
     paymentDate: payment.paymentDate,
-    paymentAmount: Number(payment.paymentAmount),
+    paymentAmount: Number(payment.amount),
     paymentMethod: payment.paymentMethod,
     referenceNumber: payment.referenceNumber,
-    isRefund: payment.isRefund,
+    isRefund: payment.isRefunded,
   }));
 }
 

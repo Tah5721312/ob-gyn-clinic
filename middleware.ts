@@ -8,30 +8,16 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
-    // إذا المستخدم محتاج يغير كلمة المرور
-    if (
-      token?.mustChangePassword &&
-      pathname !== "/auth/change-password" &&
-      !pathname.startsWith("/api")
-    ) {
-      return NextResponse.redirect(new URL("/auth/change-password", req.url));
-    }
-
-    // حماية صفحة الـ Dashboard - للأدمن فقط
-    if (pathname.startsWith("/dashboard") && token?.userType !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
     // حماية صفحات الزيارات - للأطباء فقط
-    if (pathname.startsWith("/visits") && token?.userType !== "DOCTOR") {
+    if (pathname.startsWith("/visits") && token?.role !== "DOCTOR") {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
     // حماية صفحات الحجوزات - للاستقبال والأدمن
     if (
       pathname.startsWith("/appointments") &&
-      token?.userType !== "ADMIN" &&
-      token?.roleName !== "Reception"
+      token?.role !== "ADMIN" &&
+      token?.role !== "RECEPTIONIST"
     ) {
       return NextResponse.redirect(new URL("/", req.url));
     }
@@ -39,8 +25,7 @@ export default withAuth(
     // حماية صفحات الفواتير - للمحاسبين والأدمن
     if (
       pathname.startsWith("/billing") &&
-      token?.userType !== "ADMIN" &&
-      token?.roleName !== "Accountant"
+      token?.role !== "ADMIN"
     ) {
       return NextResponse.redirect(new URL("/", req.url));
     }
@@ -49,17 +34,33 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname;
+        
+        // السماح بالوصول للصفحات العامة (بدون تسجيل دخول)
+        const publicPaths = ["/signin", "/auth/error"];
+        if (publicPaths.includes(pathname) || pathname.startsWith("/api")) {
+          return true;
+        }
+        
+        // إذا لم يكن هناك token، سيتم توجيهه تلقائياً إلى /auth/signin
+        // هذا يشمل الصفحة الرئيسية "/"
+        return !!token;
+      },
     },
   }
 );
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/visits/:path*",
-    "/appointments/:path*",
-    "/billing/:path*",
-    "/patients/:path*",
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

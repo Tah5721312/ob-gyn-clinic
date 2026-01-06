@@ -29,25 +29,20 @@ function buildWhereClause(filters: PatientFilters) {
     where.isActive = filters.isActive;
   }
 
-  // Filter: city
-  if (filters.city) {
-    where.city = { contains: filters.city, mode: "insensitive" };
-  }
-
   // Filter: hasInsurance
   if (filters.hasInsurance === true) {
-    where.patientInsurance = {
+    where.insurances = {
       some: {
         isActive: true,
       },
     };
   }
 
-  // Filter: isPregnant (pregnancyStatus = "جارية")
+  // Filter: isPregnant (isActive = true)
   if (filters.isPregnant === true) {
     where.pregnancyRecords = {
       some: {
-        pregnancyStatus: "جارية",
+        isActive: true,
       },
     };
   }
@@ -77,9 +72,8 @@ export async function getPatientsList(
       lastName: true,
       birthDate: true,
       phone: true,
-      city: true,
       isActive: true,
-      patientInsurance: {
+      insurances: {
         where: {
           isActive: true,
         },
@@ -90,10 +84,10 @@ export async function getPatientsList(
       },
       pregnancyRecords: {
         where: {
-          pregnancyStatus: "جارية",
+          isActive: true,
         },
         select: {
-          pregnancyStatus: true,
+          isActive: true,
         },
         take: 1,
       },
@@ -108,7 +102,7 @@ export async function getPatientsList(
   // تحويل البيانات إلى PatientListItem
   return patients.map((patient) => {
     const age = calculateAge(patient.birthDate);
-    const hasInsurance = hasActiveInsurance(patient.patientInsurance);
+    const hasInsurance = hasActiveInsurance(patient.insurances);
     const isPregnant = hasActivePregnancy(patient.pregnancyRecords);
 
     return {
@@ -119,7 +113,7 @@ export async function getPatientsList(
       fullName: buildFullName(patient.firstName, patient.lastName),
       phone: patient.phone,
       age,
-      city: patient.city,
+      city: null, // Removed from schema
       hasInsurance,
       isPregnant,
       isActive: patient.isActive,
@@ -148,14 +142,14 @@ export async function getPatientById(
   return await prisma.patient.findUnique({
     where: { id: patientId },
     include: {
-      patientInsurance: {
+      insurances: {
         where: { isActive: true },
-        include: {
-          insurance: true,
-        },
+        orderBy: { expiryDate: "desc" },
+        take: 1,
       },
+          insurance: true,
       pregnancyRecords: {
-        where: { pregnancyStatus: "جارية" },
+        where: { isActive: true },
         orderBy: { lmpDate: "desc" },
         take: 1,
       },

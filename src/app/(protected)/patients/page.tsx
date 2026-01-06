@@ -16,8 +16,10 @@ export default async function PatientsPage() {
   const initialPatients = await getPatientsList(prisma, {}, { limit: 50 });
 
   return (
-    <main className="container mx-auto p-6">
-      <PatientList initialPatients={initialPatients} />
-    </main>
+    <>
+      <main className="container mx-auto p-6 min-h-screen bg-gray-50">
+        <PatientList initialPatients={initialPatients} />
+      </main>
+    </>
   );
 }

@@ -10,16 +10,14 @@ export interface CreatePatientData {
   bloodType?: string;
   phone: string;
   phone2?: string;
-  email?: string;
   address?: string;
-  city?: string;
   maritalStatus?: string;
-  occupation?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
   notes?: string;
   isActive?: boolean;
+  insuranceId?: number | null;
 }
 
 export interface UpdatePatientData {
@@ -29,27 +27,23 @@ export interface UpdatePatientData {
   bloodType?: string;
   phone?: string;
   phone2?: string;
-  email?: string;
   address?: string;
-  city?: string;
   maritalStatus?: string;
-  occupation?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
   notes?: string;
   isActive?: boolean;
+  insuranceId?: number | null;
 }
 
 export async function createPatient(
   prisma: PrismaClient,
-  data: CreatePatientData,
-  createdBy?: number
+  data: CreatePatientData
 ) {
   return await prisma.patient.create({
     data: {
       ...data,
-      createdBy,
     },
   });
 }

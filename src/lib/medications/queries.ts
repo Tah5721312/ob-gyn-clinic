@@ -9,17 +9,8 @@ function buildWhereClause(filters: MedicationFilters) {
   if (filters.search) {
     where.OR = [
       { medicationName: { contains: filters.search, mode: "insensitive" } },
-      { genericName: { contains: filters.search, mode: "insensitive" } },
       { scientificName: { contains: filters.search, mode: "insensitive" } },
     ];
-  }
-
-  if (filters.category) {
-    where.category = { contains: filters.category, mode: "insensitive" };
-  }
-
-  if (filters.isActive !== undefined) {
-    where.isActive = filters.isActive;
   }
 
   return where;
@@ -39,13 +30,10 @@ export async function getMedicationsList(
     select: {
       id: true,
       medicationName: true,
-      genericName: true,
-      category: true,
       form: true,
       strength: true,
       unit: true,
       price: true,
-      isActive: true,
     },
     orderBy: {
       medicationName: "asc",

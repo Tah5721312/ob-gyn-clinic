@@ -1,4 +1,5 @@
 // lib/prisma.ts
+import "server-only";
 
 import { PrismaClient } from "@prisma/client";
 // @ts-ignore - Type definitions may not be available

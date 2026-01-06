@@ -63,7 +63,6 @@ export async function POST(request: NextRequest) {
     const followup = await createPregnancyFollowup(prisma, {
       ...body,
       visitDate: new Date(body.visitDate),
-      nextVisitDate: body.nextVisitDate ? new Date(body.nextVisitDate) : undefined,
     });
 
     return NextResponse.json(

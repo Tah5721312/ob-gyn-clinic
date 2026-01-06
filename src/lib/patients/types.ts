@@ -23,7 +23,6 @@ export interface PatientFilters {
   isActive?: boolean | null;
   hasInsurance?: boolean | null;
   isPregnant?: boolean | null;
-  city?: string;
 }
 
 export interface PatientListResponse {

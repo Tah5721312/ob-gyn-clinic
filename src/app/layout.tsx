@@ -5,6 +5,8 @@ import '@/styles/globals.css';
 // !STARTERCONF This is for demo purposes, remove @/styles/colors.css import immediately
 
 import { siteConfig } from '@/constant/config';
+import SessionProvider from '@/components/providers/SessionProvider';
+import Navigation from "@/components/Navigation";
 
 // !STARTERCONF Change these default meta
 // !STARTERCONF Look at @/constant/config to change them
@@ -55,7 +57,13 @@ export default function RootLayout({
 }) {
   return (
     <html>
-      <body>{children}</body>
+      <body>
+        <SessionProvider>
+      <Navigation />
+
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }

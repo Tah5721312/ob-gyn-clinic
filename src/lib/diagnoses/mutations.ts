@@ -24,10 +24,7 @@ export async function updateDiagnosis(
 ) {
   return await prisma.diagnosis.update({
     where: { id: diagnosisId },
-    data: {
-      ...data,
-      resolutionDate: data.isResolved && !data.resolutionDate ? new Date() : data.resolutionDate,
-    },
+    data,
   });
 }
 

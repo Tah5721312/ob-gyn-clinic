@@ -8,36 +8,28 @@ export interface CreatePregnancyData {
   lmpDate: Date;
   eddDate?: Date;
   eddByUltrasound?: Date;
-  conceptionMethod?: string;
-  pregnancyType?: string;
-  pregnancyStatus?: string;
-  riskLevel?: string;
+  deliveryDate?: Date;
+  deliveryType?: string;
+  gestationalAgeAtDelivery?: number;
+  deliveryMethod?: string;
+  babyGender?: string;
+  medicationsDuringPregnancy?: string;
+  notes?: string;
+  isActive?: boolean;
 }
 
 export interface UpdatePregnancyData {
   lmpDate?: Date;
   eddDate?: Date;
   eddByUltrasound?: Date;
-  conceptionMethod?: string;
-  pregnancyType?: string;
-  pregnancyStatus?: string;
-  riskLevel?: string;
   deliveryDate?: Date;
   deliveryType?: string;
-  deliveryLocation?: string;
   gestationalAgeAtDelivery?: number;
   deliveryMethod?: string;
-  anesthesiaType?: string;
   babyGender?: string;
-  babyWeight?: number;
-  babyLength?: number;
-  babyHeadCircumference?: number;
-  apgarScore1min?: number;
-  apgarScore5min?: number;
-  babyStatus?: string;
-  complications?: string;
   medicationsDuringPregnancy?: string;
   notes?: string;
+  isActive?: boolean;
 }
 
 export async function createPregnancy(
@@ -46,8 +38,19 @@ export async function createPregnancy(
 ) {
   return await prisma.pregnancyRecord.create({
     data: {
-      pregnancyStatus: data.pregnancyStatus || "جارية",
-      ...data,
+      patientId: data.patientId,
+      pregnancyNumber: data.pregnancyNumber,
+      lmpDate: new Date(data.lmpDate),
+      eddDate: data.eddDate ? new Date(data.eddDate) : null,
+      eddByUltrasound: data.eddByUltrasound ? new Date(data.eddByUltrasound) : null,
+      deliveryDate: data.deliveryDate ? new Date(data.deliveryDate) : null,
+      deliveryType: data.deliveryType || null,
+      gestationalAgeAtDelivery: data.gestationalAgeAtDelivery || null,
+      deliveryMethod: data.deliveryMethod || null,
+      babyGender: data.babyGender || null,
+      medicationsDuringPregnancy: data.medicationsDuringPregnancy || null,
+      notes: data.notes || null,
+      isActive: data.isActive ?? true,
     },
   });
 }

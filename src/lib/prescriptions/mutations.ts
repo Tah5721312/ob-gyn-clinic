@@ -1,43 +1,7 @@
 // lib/prescriptions/mutations.ts
 
 import { PrismaClient } from "@prisma/client";
-
-export interface CreatePrescriptionData {
-  visitId: number;
-  patientId: number;
-  doctorId: number;
-  prescriptionDate?: Date;
-  isEmergency?: boolean;
-  isChronicMedication?: boolean;
-  validUntil?: Date;
-  refillsAllowed?: number;
-  pharmacyNotes?: string;
-  notes?: string;
-}
-
-export interface UpdatePrescriptionData {
-  validUntil?: Date;
-  refillsAllowed?: number;
-  refillsUsed?: number;
-  pharmacyNotes?: string;
-  notes?: string;
-}
-
-export interface CreatePrescriptionDetailData {
-  prescriptionId: number;
-  medicationId: number;
-  dosage: string;
-  frequency: string;
-  frequencyPerDay?: number;
-  route?: string;
-  timing?: string;
-  durationDays?: number;
-  startDate?: Date;
-  endDate?: Date;
-  totalQuantity?: number;
-  instructions?: string;
-  isAsNeeded?: boolean;
-}
+import { CreatePrescriptionData, UpdatePrescriptionData, PrescriptionItemData } from "./types";
 
 export async function createPrescription(
   prisma: PrismaClient,
@@ -45,12 +9,21 @@ export async function createPrescription(
 ) {
   return await prisma.prescription.create({
     data: {
-      prescriptionDate: data.prescriptionDate || new Date(),
-      isEmergency: data.isEmergency || false,
-      isChronicMedication: data.isChronicMedication || false,
-      refillsAllowed: data.refillsAllowed || 0,
-      refillsUsed: 0,
-      ...data,
+      visitId: data.visitId || null,
+      followupId: data.followupId || null,
+      notes: data.notes || null,
+      items: {
+        create: data.items.map((item) => ({
+          medicationName: item.medicationName,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          duration: item.duration,
+          instructions: item.instructions || null,
+        })),
+      },
+    },
+    include: {
+      items: true,
     },
   });
 }
@@ -60,9 +33,32 @@ export async function updatePrescription(
   prescriptionId: number,
   data: UpdatePrescriptionData
 ) {
+  // إذا تم تحديث items، نحذف القديمة ونضيف الجديدة
+  if (data.items) {
+    await prisma.prescriptionItem.deleteMany({
+      where: { prescriptionId },
+    });
+  }
+
   return await prisma.prescription.update({
     where: { id: prescriptionId },
-    data,
+    data: {
+      notes: data.notes,
+      ...(data.items && {
+        items: {
+          create: data.items.map((item) => ({
+            medicationName: item.medicationName,
+            dosage: item.dosage,
+            frequency: item.frequency,
+            duration: item.duration,
+            instructions: item.instructions,
+          })),
+        },
+      }),
+    },
+    include: {
+      items: true,
+    },
   });
 }
 
@@ -75,21 +71,46 @@ export async function deletePrescription(
   });
 }
 
-export async function addPrescriptionDetail(
+export async function addPrescriptionItem(
   prisma: PrismaClient,
-  data: CreatePrescriptionDetailData
+  prescriptionId: number,
+  item: PrescriptionItemData
 ) {
-  return await prisma.prescriptionDetail.create({
-    data,
+  return await prisma.prescriptionItem.create({
+    data: {
+      prescriptionId,
+      medicationName: item.medicationName,
+      dosage: item.dosage,
+      frequency: item.frequency,
+      duration: item.duration,
+      instructions: item.instructions,
+    },
   });
 }
 
-export async function removePrescriptionDetail(
+export async function updatePrescriptionItem(
   prisma: PrismaClient,
-  detailId: number
+  itemId: number,
+  item: PrescriptionItemData
 ) {
-  return await prisma.prescriptionDetail.delete({
-    where: { id: detailId },
+  return await prisma.prescriptionItem.update({
+    where: { id: itemId },
+    data: {
+      medicationName: item.medicationName,
+      dosage: item.dosage,
+      frequency: item.frequency,
+      duration: item.duration,
+      instructions: item.instructions,
+    },
+  });
+}
+
+export async function deletePrescriptionItem(
+  prisma: PrismaClient,
+  itemId: number
+) {
+  return await prisma.prescriptionItem.delete({
+    where: { id: itemId },
   });
 }
 
