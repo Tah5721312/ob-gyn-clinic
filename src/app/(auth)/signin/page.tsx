@@ -1,15 +1,15 @@
 "use client";
 import { apiFetch } from "@/lib/api";
 
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Lock, User } from "lucide-react";
 
 /**
  * تحديد URL التوجيه بعد تسجيل الدخول
  * DOCTOR → /
- * RECEPTIONIST → /appointments
+ * RECEPTIONIST → /
  * ADMIN → /
  */
 function getRedirectUrl(role: string): string {
@@ -27,12 +27,20 @@ function getRedirectUrl(role: string): string {
 
 export default function SignIn() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // توجيه المستخدم المسجل بالفعل تلقائياً
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,24 +66,22 @@ export default function SignIn() {
         return;
       }
 
-      // الانتظار قليلاً حتى يتم إنشاء Session
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      
-      // الحصول على بيانات المستخدم من Session
+      // بعد نجاح الدخول، ننتظر قليلاً ثم نوجه المستخدم
+      // ملاحظة: useEffect أعلاه سيقوم بالمهمة أيضاً بمجرد تحديث الحالة
+      // ولكن هنا نقوم بجلب الجلسة للتوجيه الدقيق إذا لزم الأمر
+
       try {
+        // ننتظر تحديث الجلسة
         const sessionResponse = await apiFetch("/api/auth/session");
-        const session = await sessionResponse.json();
-        
-        if (session?.user?.role) {
-          // تحديد URL التوجيه حسب role
-          const redirectUrl = getRedirectUrl(session.user.role);
+        const sessionData = await sessionResponse.json();
+
+        if (sessionData?.user?.role) {
+          const redirectUrl = getRedirectUrl(sessionData.user.role);
           router.push(redirectUrl);
         } else {
-          // افتراضي
           router.push("/");
         }
       } catch (sessionError) {
-        // إذا فشل جلب الـ session، توجه للصفحة الرئيسية
         console.error("Error fetching session:", sessionError);
         router.push("/");
       }
