@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { X, AlertCircle } from "lucide-react";
@@ -123,7 +124,7 @@ export function TemplateModal({
         isFavorite: formData.isFavorite,
       };
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),

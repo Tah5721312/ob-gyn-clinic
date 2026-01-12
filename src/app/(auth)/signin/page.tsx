@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
@@ -62,7 +63,7 @@ export default function SignIn() {
       
       // الحصول على بيانات المستخدم من Session
       try {
-        const sessionResponse = await fetch("/api/auth/session");
+        const sessionResponse = await apiFetch("/api/auth/session");
         const session = await sessionResponse.json();
         
         if (session?.user?.role) {

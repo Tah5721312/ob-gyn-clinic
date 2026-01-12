@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -70,7 +71,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
   useEffect(() => {
     if (appointmentToEdit && isOpen) {
       // جلب بيانات المريض
-      fetch(`/api/patients/${appointmentToEdit.patientId}`)
+      apiFetch(`/api/patients/${appointmentToEdit.patientId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -108,7 +109,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       });
     } else if (initialPatientId && isOpen) {
       // جلب بيانات المريض إذا كان initialPatientId موجود
-      fetch(`/api/patients/${initialPatientId}`)
+      apiFetch(`/api/patients/${initialPatientId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -146,7 +147,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
   useEffect(() => {
     if (isOpen) {
       const doctorId = session?.user?.doctorId || 1;
-      fetch(`/api/working-schedules?doctorId=${doctorId}&isActive=true`)
+      apiFetch(`/api/working-schedules?doctorId=${doctorId}&isActive=true`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -166,7 +167,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
 
     const doctorId = session?.user?.doctorId || 1;
     try {
-      const response = await fetch(`/api/appointments?appointmentDate=${date}&doctorId=${doctorId}`);
+      const response = await apiFetch(`/api/appointments?appointmentDate=${date}&doctorId=${doctorId}`);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -297,7 +298,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
 
     const fetchPatients = async () => {
       try {
-        const response = await fetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
+        const response = await apiFetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
         const result = await response.json();
         if (result.success) {
           setPatients(result.data.slice(0, 5));
@@ -362,7 +363,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         body.status = formData.status;
       }
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

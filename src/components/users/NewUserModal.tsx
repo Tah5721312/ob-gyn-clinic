@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { X, User, Mail, Phone, Shield, Lock } from "lucide-react";
@@ -35,7 +36,7 @@ export function NewUserModal({
   // جلب الأطباء
   useEffect(() => {
     if (isOpen) {
-      fetch("/api/doctors")
+      apiFetch("/api/doctors")
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -116,7 +117,7 @@ export function NewUserModal({
         body.doctorId = null;
       }
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',

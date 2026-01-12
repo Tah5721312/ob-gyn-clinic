@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Plus, Search, Star, StarOff, Edit, Trash2, FileText } from "lucide-react";
@@ -26,7 +27,7 @@ export function TemplateList({ initialTemplates = [], doctorId }: TemplateListPr
       if (search) params.append("search", search);
       if (filterType) params.append("templateType", filterType);
 
-      const response = await fetch(`/api/templates?${params.toString()}`);
+      const response = await apiFetch(`/api/templates?${params.toString()}`);
       const result = await response.json();
 
       if (result.success) {
@@ -49,7 +50,7 @@ export function TemplateList({ initialTemplates = [], doctorId }: TemplateListPr
 
   const handleToggleFavorite = async (templateId: number) => {
     try {
-      const response = await fetch(`/api/templates/favorites`, {
+      const response = await apiFetch(`/api/templates/favorites`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ templateId }),
@@ -68,7 +69,7 @@ export function TemplateList({ initialTemplates = [], doctorId }: TemplateListPr
     if (!confirm("هل أنت متأكد من حذف هذا القالب؟")) return;
 
     try {
-      const response = await fetch(`/api/templates/${templateId}`, {
+      const response = await apiFetch(`/api/templates/${templateId}`, {
         method: "DELETE",
       });
       const result = await response.json();

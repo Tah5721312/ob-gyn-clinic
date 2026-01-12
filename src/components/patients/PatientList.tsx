@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect, useRef } from "react";
 import { Search, Phone, MapPin, Shield, Baby, MoreVertical, Eye, Calendar, Stethoscope, Plus, Users, Heart } from "lucide-react";
@@ -55,7 +56,7 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
         if (filters.hasInsurance) params.append("hasInsurance", filters.hasInsurance);
         if (filters.isPregnant) params.append("isPregnant", filters.isPregnant);
 
-        const response = await fetch(`/api/patients?${params.toString()}`);
+        const response = await apiFetch(`/api/patients?${params.toString()}`);
         const result: PatientListResponse = await response.json();
 
         if (result.success) {
@@ -325,7 +326,7 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
           if (filters.hasInsurance) params.append("hasInsurance", filters.hasInsurance);
           if (filters.isPregnant) params.append("isPregnant", filters.isPregnant);
 
-          fetch(`/api/patients?${params.toString()}`)
+          apiFetch(`/api/patients?${params.toString()}`)
             .then(res => res.json())
             .then((result: PatientListResponse) => {
               if (result.success) {

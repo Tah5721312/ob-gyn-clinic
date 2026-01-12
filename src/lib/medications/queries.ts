@@ -31,8 +31,8 @@ export async function getMedicationsList(
       id: true,
       medicationName: true,
       form: true,
-      strength: true,
-      unit: true,
+      pregnancyCategory: true,
+      breastfeedingSafe: true,
       price: true,
     },
     orderBy: {

@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { X, Clock, Calendar, User } from "lucide-react";
@@ -102,7 +103,7 @@ export function NewScheduleModal({
 
       const method = scheduleToEdit ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await apiFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',

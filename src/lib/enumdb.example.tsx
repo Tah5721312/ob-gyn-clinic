@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api";
 // ====================================
 // مثال على استخدام الـ Enums في الـ Frontend
 // ====================================
@@ -137,7 +138,7 @@ export interface CreateAppointmentFormData {
 
 export async function createPatient(data: CreatePatientFormData) {
   // TypeScript يمنع الأخطاء هنا
-  const response = await fetch("/api/patients", {
+  const response = await apiFetch("/api/patients", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -155,10 +156,30 @@ export async function createPatient(data: CreatePatientFormData) {
 // ====================================
 
 export function AppointmentStatusBadge({ status }: { status: string }) {
-  const statusConfig = {
-    [AppointmentStatus.BOOKED]: { label: AppointmentStatusLabels[AppointmentStatus.BOOKED], color: "blue" },
-    [AppointmentStatus.CANCELLED]: { label: AppointmentStatusLabels[AppointmentStatus.CANCELLED], color: "red" },
-    [AppointmentStatus.COMPLETED]: { label: AppointmentStatusLabels[AppointmentStatus.COMPLETED], color: "green" },
+  const statusConfig: Record<
+    AppointmentStatus,
+    { label: string; color: string }
+  > = {
+    [AppointmentStatus.BOOKED]: {
+      label: AppointmentStatusLabels[AppointmentStatus.BOOKED],
+      color: "blue",
+    },
+    [AppointmentStatus.CONFIRMED]: {
+      label: AppointmentStatusLabels[AppointmentStatus.CONFIRMED],
+      color: "purple",
+    },
+    [AppointmentStatus.COMPLETED]: {
+      label: AppointmentStatusLabels[AppointmentStatus.COMPLETED],
+      color: "green",
+    },
+    [AppointmentStatus.CANCELLED]: {
+      label: AppointmentStatusLabels[AppointmentStatus.CANCELLED],
+      color: "red",
+    },
+    [AppointmentStatus.NO_SHOW]: {
+      label: AppointmentStatusLabels[AppointmentStatus.NO_SHOW],
+      color: "gray",
+    },
   };
 
   const config = statusConfig[status as AppointmentStatus];

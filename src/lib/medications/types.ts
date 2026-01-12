@@ -1,13 +1,11 @@
 // lib/medications/types.ts
 
-import { MedicationStrength, MedicationUnit } from "@/lib/enumdb";
-
 export interface MedicationListItem {
   id: number;
   medicationName: string;
   form: string | null;
-  strength: MedicationStrength | null;
-  unit: MedicationUnit | null;
+  pregnancyCategory: string | null;
+  breastfeedingSafe: string | null;
   price: number | null;
 }
 
@@ -19,13 +17,10 @@ export interface CreateMedicationData {
   medicationName: string;
   scientificName?: string;
   form?: string;
-  strength?: MedicationStrength;
-  unit?: MedicationUnit;
   pregnancyCategory?: string;
-  breastfeedingSafe?: boolean;
+  breastfeedingSafe?: string;
   sideEffects?: string;
-  contraindications?: string;
-  drugInteractions?: string;
+  notes?: string;
   price?: number;
 }
 
@@ -33,13 +28,10 @@ export interface UpdateMedicationData {
   medicationName?: string;
   scientificName?: string;
   form?: string;
-  strength?: MedicationStrength;
-  unit?: MedicationUnit;
   pregnancyCategory?: string;
-  breastfeedingSafe?: boolean;
+  breastfeedingSafe?: string;
   sideEffects?: string;
-  contraindications?: string;
-  drugInteractions?: string;
+  notes?: string;
   price?: number;
 }
 

@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -101,7 +102,7 @@ export default function PatientDetailPage() {
   useEffect(() => {
     const fetchPatient = async () => {
       try {
-        const response = await fetch(`/api/patients/${patientId}`);
+        const response = await apiFetch(`/api/patients/${patientId}`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -126,7 +127,7 @@ export default function PatientDetailPage() {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/patients/${patientId}`, {
+      const response = await apiFetch(`/api/patients/${patientId}`, {
         method: "DELETE",
       });
 

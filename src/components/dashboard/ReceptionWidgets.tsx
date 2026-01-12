@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from "@/lib/api";
 
 import { useRouter } from 'next/navigation';
 import { Calendar, Users, FileText, Clock } from 'lucide-react';
@@ -30,7 +31,7 @@ export function ReceptionWidgets({ session }: { session: any }) {
         const appointmentsParams = new URLSearchParams();
         appointmentsParams.append('appointmentDate', today);
 
-        const appointmentsResponse = await fetch(`/api/appointments?${appointmentsParams.toString()}`);
+        const appointmentsResponse = await apiFetch(`/api/appointments?${appointmentsParams.toString()}`);
         const appointmentsResult = await appointmentsResponse.json();
         
         if (appointmentsResult.success) {
@@ -48,7 +49,7 @@ export function ReceptionWidgets({ session }: { session: any }) {
         invoicesParams.append('paymentStatus', 'UNPAID');
         invoicesParams.append('paymentStatus', 'PARTIAL');
 
-        const invoicesResponse = await fetch(`/api/invoices?${invoicesParams.toString()}`);
+        const invoicesResponse = await apiFetch(`/api/invoices?${invoicesParams.toString()}`);
         const invoicesResult = await invoicesResponse.json();
         
         if (invoicesResult.success) {

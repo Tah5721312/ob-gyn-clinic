@@ -13,9 +13,10 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { patientId: string } }
+  context: { params: Promise<{ patientId: string }> }
 ) {
   try {
+    const params = await context.params;
     const patientId = parseInt(params.patientId);
 
     if (isNaN(patientId)) {
@@ -49,9 +50,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { patientId: string } }
+  context: { params: Promise<{ patientId: string }> }
 ) {
   try {
+    const params = await context.params;
     const patientId = parseInt(params.patientId);
 
     if (isNaN(patientId)) {
@@ -92,9 +94,10 @@ export async function POST(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { patientId: string } }
+  context: { params: Promise<{ patientId: string }> }
 ) {
   try {
+    const params = await context.params;
     const patientId = parseInt(params.patientId);
 
     if (isNaN(patientId)) {

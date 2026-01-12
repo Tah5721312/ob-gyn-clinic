@@ -1,6 +1,6 @@
 "use client";
-
-import { useState, useEffect } from "react";
+import { apiFetch } from "@/lib/api";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Search, User, X, Plus, Trash2, Save } from "lucide-react";
@@ -20,7 +20,7 @@ interface Medication {
   instructions: string;
 }
 
-export default function NewPrescriptionPage() {
+function PrescriptionFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -51,7 +51,7 @@ export default function NewPrescriptionPage() {
       
       try {
         const templateType = encodeURIComponent("روشتة");
-        const response = await fetch(`/api/templates?doctorId=${session.user.doctorId}&templateType=${templateType}&isActive=true`);
+        const response = await apiFetch(`/api/templates?doctorId=${session.user.doctorId}&templateType=${templateType}&isActive=true`);
         const result = await response.json();
         
         if (result.success && result.data) {
@@ -80,7 +80,7 @@ export default function NewPrescriptionPage() {
   useEffect(() => {
     const patientId = searchParams.get('patientId');
     if (patientId && !selectedPatient) {
-      fetch(`/api/patients/${patientId}`)
+      apiFetch(`/api/patients/${patientId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -105,7 +105,7 @@ export default function NewPrescriptionPage() {
 
     const fetchPatients = async () => {
       try {
-        const response = await fetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
+        const response = await apiFetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
         const result = await response.json();
         if (result.success) {
           setPatients(result.data.slice(0, 5));
@@ -229,7 +229,7 @@ export default function NewPrescriptionPage() {
       // فلترة الأدوية الفارغة
       const validMedications = medications.filter(m => m.medicationName.trim() !== "");
 
-      const response = await fetch("/api/prescriptions", {
+      const response = await apiFetch("/api/prescriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -508,6 +508,14 @@ export default function NewPrescriptionPage() {
         </form>
       </main>
     </>
+  );
+}
+
+export default function NewPrescriptionPage() {
+  return (
+    <Suspense fallback={<div>جاري التحميل...</div>}>
+      <PrescriptionFormContent />
+    </Suspense>
   );
 }
 

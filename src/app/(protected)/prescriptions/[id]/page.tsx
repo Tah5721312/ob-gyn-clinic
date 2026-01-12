@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
@@ -69,7 +70,7 @@ export default function PrescriptionDetailPage() {
   useEffect(() => {
     const fetchPrescription = async () => {
       try {
-        const response = await fetch(`/api/prescriptions/${prescriptionId}`);
+        const response = await apiFetch(`/api/prescriptions/${prescriptionId}`);
         const result = await response.json();
 
         if (result.success && result.data) {
@@ -112,7 +113,7 @@ export default function PrescriptionDetailPage() {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
+      const response = await apiFetch(`/api/prescriptions/${prescriptionId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -153,7 +154,7 @@ export default function PrescriptionDetailPage() {
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
+      const response = await apiFetch(`/api/prescriptions/${prescriptionId}`, {
         method: "DELETE",
       });
 

@@ -12,12 +12,8 @@ function buildWhereClause(filters: PregnancyFilters) {
     where.patientId = filters.patientId;
   }
 
-  if (filters.pregnancyStatus) {
-    where.pregnancyStatus = filters.pregnancyStatus;
-  }
-
-  if (filters.riskLevel) {
-    where.riskLevel = filters.riskLevel;
+  if (filters.isActive !== undefined) {
+    where.isActive = filters.isActive;
   }
 
   if (filters.search) {
@@ -73,8 +69,7 @@ export async function getPregnanciesList(
     pregnancyNumber: pregnancy.pregnancyNumber,
     lmpDate: pregnancy.lmpDate,
     eddDate: pregnancy.eddDate,
-    pregnancyStatus: pregnancy.pregnancyStatus,
-    riskLevel: pregnancy.riskLevel,
+    isActive: pregnancy.isActive,
     gestationalAgeWeeks: pregnancy.followups[0]?.visitDate
       ? calculateGestationalAgeWeeks(
           pregnancy.lmpDate,
@@ -118,7 +113,7 @@ export async function getActivePregnancies(
   patientId?: number
 ) {
   const where: any = {
-    pregnancyStatus: "جارية",
+    isActive: true,
   };
 
   if (patientId) {

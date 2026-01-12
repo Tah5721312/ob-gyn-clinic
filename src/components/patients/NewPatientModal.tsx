@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { X, User } from "lucide-react";
@@ -58,7 +59,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
 
     setLoading(true);
     try {
-      const response = await fetch("/api/patients", {
+      const response = await apiFetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

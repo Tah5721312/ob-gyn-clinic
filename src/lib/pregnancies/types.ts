@@ -7,16 +7,14 @@ export interface PregnancyListItem {
   pregnancyNumber: number;
   lmpDate: Date;
   eddDate: Date | null;
-  pregnancyStatus: string;
-  riskLevel: string | null;
+  isActive: boolean;
   gestationalAgeWeeks: number | null;
   deliveryDate: Date | null;
 }
 
 export interface PregnancyFilters {
   patientId?: number;
-  pregnancyStatus?: string;
-  riskLevel?: string;
+  isActive?: boolean;
   search?: string;
 }
 

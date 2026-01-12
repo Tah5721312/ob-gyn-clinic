@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -63,7 +64,7 @@ export default function PaymentsPage() {
       if (selectedDate) params.append("paymentDate", selectedDate);
       if (methodFilter) params.append("paymentMethod", methodFilter);
 
-      const response = await fetch(`/api/payments?${params.toString()}`);
+      const response = await apiFetch(`/api/payments?${params.toString()}`);
       const result = await response.json();
 
       if (result.success) {
@@ -133,7 +134,7 @@ export default function PaymentsPage() {
     if (!selectedPayment) return;
 
     try {
-      const response = await fetch(`/api/payments/${selectedPayment.id}`, {
+      const response = await apiFetch(`/api/payments/${selectedPayment.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,7 +165,7 @@ export default function PaymentsPage() {
     if (!selectedPayment) return;
 
     try {
-      const response = await fetch(`/api/payments/${selectedPayment.id}`, {
+      const response = await apiFetch(`/api/payments/${selectedPayment.id}`, {
         method: "DELETE",
       });
 
@@ -185,7 +186,7 @@ export default function PaymentsPage() {
     if (!selectedPayment) return;
 
     try {
-      const response = await fetch(`/api/payments/${selectedPayment.id}/refund`, {
+      const response = await apiFetch(`/api/payments/${selectedPayment.id}/refund`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -40,11 +41,11 @@ export default function FinancialDashboardPage() {
     setLoading(true);
     try {
       // جلب الفواتير
-      const invoicesResponse = await fetch('/api/invoices');
+      const invoicesResponse = await apiFetch('/api/invoices');
       const invoicesResult = await invoicesResponse.json();
       
       // جلب الدفعات
-      const paymentsResponse = await fetch('/api/payments');
+      const paymentsResponse = await apiFetch('/api/payments');
       const paymentsResult = await paymentsResponse.json();
 
       if (invoicesResult.success && paymentsResult.success) {

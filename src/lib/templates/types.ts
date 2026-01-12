@@ -99,7 +99,7 @@ export interface DiagnosisTemplateContent {
   diagnosisName: string;
   diagnosisNameEn?: string;
   diagnosisType: string;
-  riskLevel?: string;
+  isHighRisk?: boolean;
   notes?: string;
 }
 
@@ -107,7 +107,7 @@ export interface DiagnosisTemplateContent {
 export interface DiagnosisWithPlanTemplateContent {
   diagnosisName: string;
   diagnosisType: string;
-  riskLevel?: string;
+  isHighRisk?: boolean;
   treatmentPlan: string;
   medications?: PrescriptionItemTemplate[];
   recommendations?: string;

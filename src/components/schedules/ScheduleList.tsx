@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Calendar, Clock, User, Plus, Edit, Trash2, CheckCircle, XCircle, Search } from "lucide-react";
@@ -33,7 +34,7 @@ export function ScheduleList({ initialSchedules = [], userRole, doctorId }: Sche
         params.append("doctorId", doctorId.toString());
       }
 
-      const response = await fetch(`/api/working-schedules?${params.toString()}`);
+      const response = await apiFetch(`/api/working-schedules?${params.toString()}`);
       const result = await response.json();
 
       if (result.success) {
@@ -62,7 +63,7 @@ export function ScheduleList({ initialSchedules = [], userRole, doctorId }: Sche
 
   const handleDelete = async (scheduleId: number) => {
     try {
-      const response = await fetch(`/api/working-schedules/${scheduleId}`, {
+      const response = await apiFetch(`/api/working-schedules/${scheduleId}`, {
         method: "DELETE",
       });
       const result = await response.json();

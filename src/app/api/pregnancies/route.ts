@@ -19,8 +19,7 @@ export async function GET(request: NextRequest) {
     const filters: PregnancyFilters = {
       search: searchParams.get("search") || undefined,
       patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
-      pregnancyStatus: searchParams.get("pregnancyStatus") || undefined,
-      riskLevel: searchParams.get("riskLevel") || undefined,
+      isActive: searchParams.get("isActive") ? searchParams.get("isActive") === "true" : undefined,
     };
 
     const pregnancies = await getPregnanciesList(prisma, filters);

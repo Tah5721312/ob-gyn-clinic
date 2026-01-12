@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Search, Calendar, DollarSign, FileText, Plus, CheckCircle, XCircle, Clock, Edit, Trash2 } from "lucide-react";
@@ -29,7 +30,7 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
         if (selectedDate) params.append("invoiceDate", selectedDate);
         if (statusFilter) params.append("paymentStatus", statusFilter);
 
-        const response = await fetch(`/api/invoices?${params.toString()}`);
+        const response = await apiFetch(`/api/invoices?${params.toString()}`);
         const result = await response.json();
 
         if (result.success) {
@@ -208,7 +209,7 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
                             e.stopPropagation();
                             if (confirm(`هل أنت متأكد من حذف الفاتورة ${invoice.invoiceNumber}؟`)) {
                               try {
-                                const response = await fetch(`/api/invoices/${invoice.id}`, {
+                                const response = await apiFetch(`/api/invoices/${invoice.id}`, {
                                   method: "DELETE",
                                 });
                                 const result = await response.json();
@@ -249,7 +250,7 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
           if (selectedDate) params.append("invoiceDate", selectedDate);
           if (statusFilter) params.append("paymentStatus", statusFilter);
 
-          fetch(`/api/invoices?${params.toString()}`)
+          apiFetch(`/api/invoices?${params.toString()}`)
             .then(res => res.json())
             .then(result => {
               if (result.success) {

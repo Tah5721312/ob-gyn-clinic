@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export default function VisitsPage() {
         params.append("doctorId", session.user.doctorId.toString());
       }
 
-      const response = await fetch(`/api/visits?${params.toString()}`);
+      const response = await apiFetch(`/api/visits?${params.toString()}`);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -53,7 +54,7 @@ export default function VisitsPage() {
 
   const handleDelete = async (visitId: number) => {
     try {
-      const response = await fetch(`/api/visits/${visitId}`, {
+      const response = await apiFetch(`/api/visits/${visitId}`, {
         method: "DELETE",
       });
       const result = await response.json();

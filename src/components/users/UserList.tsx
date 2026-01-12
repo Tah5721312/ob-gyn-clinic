@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Search, Plus, Edit, Trash2, CheckCircle, XCircle, User, Mail, Phone, Shield, Users } from "lucide-react";
@@ -29,7 +30,7 @@ export function UserList({ initialUsers = [] }: UserListProps) {
       if (roleFilter) params.append("role", roleFilter);
       if (statusFilter !== "") params.append("isActive", statusFilter);
 
-      const response = await fetch(`/api/users?${params.toString()}`);
+      const response = await apiFetch(`/api/users?${params.toString()}`);
       const result = await response.json();
 
       if (result.success) {
@@ -57,7 +58,7 @@ export function UserList({ initialUsers = [] }: UserListProps) {
 
   const handleDelete = async (userId: number) => {
     try {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await apiFetch(`/api/users/${userId}`, {
         method: "DELETE",
       });
       const result = await response.json();

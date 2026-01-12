@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft, User as UserIcon, Stethoscope } from "lucide-react";
@@ -36,7 +37,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
           params.append("doctorId", session.user.doctorId.toString());
         }
 
-        const response = await fetch(`/api/appointments?${params.toString()}`);
+        const response = await apiFetch(`/api/appointments?${params.toString()}`);
         const result = await response.json();
 
         if (result.success) {
@@ -102,7 +103,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
     }
 
     try {
-      const response = await fetch(`/api/appointments/${appointmentId}`, {
+      const response = await apiFetch(`/api/appointments/${appointmentId}`, {
         method: "DELETE",
       });
 
@@ -118,7 +119,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
           params.append("doctorId", session.user.doctorId.toString());
         }
 
-        const refreshResponse = await fetch(`/api/appointments?${params.toString()}`);
+        const refreshResponse = await apiFetch(`/api/appointments?${params.toString()}`);
         const refreshResult = await refreshResponse.json();
         if (refreshResult.success) {
           setAppointments(refreshResult.data);
@@ -289,16 +290,18 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                         >
                           <User size={18} />
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/visits/new?patientId=${appointment.patientId}`);
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                          title="كشف "
-                        >
-                          <Stethoscope size={18} />
-                        </button>
+                        {session?.user?.role === "DOCTOR" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/visits/new?patientId=${appointment.patientId}`);
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                            title="كشف "
+                          >
+                            <Stethoscope size={18} />
+                          </button>
+                        )}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -348,7 +351,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
             params.append("doctorId", session.user.doctorId.toString());
           }
 
-          fetch(`/api/appointments?${params.toString()}`)
+          apiFetch(`/api/appointments?${params.toString()}`)
             .then(res => res.json())
             .then(result => {
               if (result.success) {

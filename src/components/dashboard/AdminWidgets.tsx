@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from "@/lib/api";
 
 import { useRouter } from 'next/navigation';
 import { Calendar, Users, FileText, Clock } from 'lucide-react';
@@ -33,7 +34,7 @@ export function AdminWidgets({ session }: { session: any }) {
     const fetchStats = async () => {
       try {
         // جلب عدد المرضى
-        const patientsResponse = await fetch('/api/patients');
+        const patientsResponse = await apiFetch('/api/patients');
         const patientsResult = await patientsResponse.json();
         if (patientsResult.success) {
           setStats(prev => ({ ...prev, totalPatients: patientsResult.count || patientsResult.data?.length || 0 }));
@@ -43,18 +44,18 @@ export function AdminWidgets({ session }: { session: any }) {
         const invoicesParams = new URLSearchParams();
         invoicesParams.append('paymentStatus', 'UNPAID');
         invoicesParams.append('paymentStatus', 'PARTIAL');
-        
-        const invoicesResponse = await fetch(`/api/invoices?${invoicesParams.toString()}`);
+
+        const invoicesResponse = await apiFetch(`/api/invoices?${invoicesParams.toString()}`);
         const invoicesResult = await invoicesResponse.json();
         if (invoicesResult.success) {
           setStats(prev => ({ ...prev, pendingInvoices: invoicesResult.count || invoicesResult.data?.length || 0 }));
-          
+
           // حساب الملخص المالي
           const invoices = invoicesResult.data || [];
           const totalRevenue = invoices.reduce((sum: number, inv: any) => sum + inv.totalAmount, 0);
           const paid = invoices.reduce((sum: number, inv: any) => sum + inv.paidAmount, 0);
           const remaining = totalRevenue - paid;
-          
+
           setFinancialSummary({
             totalRevenue,
             cash: paid * 0.7, // تقدير
@@ -68,8 +69,8 @@ export function AdminWidgets({ session }: { session: any }) {
         startOfMonth.setDate(1);
         const appointmentsParams = new URLSearchParams();
         appointmentsParams.append('appointmentDate', startOfMonth.toISOString().split('T')[0]);
-        
-        const appointmentsResponse = await fetch(`/api/appointments?${appointmentsParams.toString()}`);
+
+        const appointmentsResponse = await apiFetch(`/api/appointments?${appointmentsParams.toString()}`);
         const appointmentsResult = await appointmentsResponse.json();
         if (appointmentsResult.success) {
           setStats(prev => ({ ...prev, monthlyAppointments: appointmentsResult.count || appointmentsResult.data?.length || 0 }));

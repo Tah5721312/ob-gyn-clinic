@@ -14,16 +14,12 @@ function buildWhereClause(filters: DiagnosisFilters) {
     where.visitId = filters.visitId;
   }
 
-  if (filters.diagnosisType) {
-    where.diagnosisType = filters.diagnosisType;
-  }
-
   if (filters.isChronic !== undefined) {
     where.isChronic = filters.isChronic;
   }
 
-  if (filters.isResolved !== undefined) {
-    where.isResolved = filters.isResolved;
+  if (filters.isHighRisk !== undefined) {
+    where.isHighRisk = filters.isHighRisk;
   }
 
   if (filters.search) {
@@ -68,11 +64,9 @@ export async function getDiagnosesList(
     patientId: diagnosis.patientId,
     patientName: `${diagnosis.patient.firstName} ${diagnosis.patient.lastName}`,
     diagnosisName: diagnosis.diagnosisName,
-    diagnosisType: diagnosis.diagnosisType,
-    riskLevel: (diagnosis as any).riskLevel,
     diagnosisDate: diagnosis.diagnosisDate,
     isChronic: diagnosis.isChronic,
-    isResolved: diagnosis.isResolved,
+    isHighRisk: diagnosis.isHighRisk,
   }));
 }
 

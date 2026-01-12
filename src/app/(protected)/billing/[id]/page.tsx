@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -81,7 +82,7 @@ export default function InvoiceDetailPage() {
 
   const fetchInvoice = async () => {
     try {
-      const response = await fetch(`/api/invoices/${params.id}`);
+      const response = await apiFetch(`/api/invoices/${params.id}`);
       const result = await response.json();
       if (result.success) {
         const invoiceData = result.data;
@@ -129,7 +130,7 @@ export default function InvoiceDetailPage() {
     }
 
     try {
-      const response = await fetch(`/api/invoices/${invoice.id}/payments`, {
+      const response = await apiFetch(`/api/invoices/${invoice.id}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -168,7 +169,7 @@ export default function InvoiceDetailPage() {
     if (!invoice) return;
 
     try {
-      const response = await fetch(`/api/invoices/${invoice.id}`, {
+      const response = await apiFetch(`/api/invoices/${invoice.id}`, {
         method: "DELETE",
       });
 

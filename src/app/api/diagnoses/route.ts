@@ -20,14 +20,13 @@ export async function GET(request: NextRequest) {
       search: searchParams.get("search") || undefined,
       patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
       visitId: searchParams.get("visitId") ? parseInt(searchParams.get("visitId")!) : undefined,
-      diagnosisType: searchParams.get("diagnosisType") || undefined,
       isChronic:
         searchParams.get("isChronic") !== null && searchParams.get("isChronic") !== undefined
           ? searchParams.get("isChronic") === "true"
           : undefined,
-      isResolved:
-        searchParams.get("isResolved") !== null && searchParams.get("isResolved") !== undefined
-          ? searchParams.get("isResolved") === "true"
+      isHighRisk:
+        searchParams.get("isHighRisk") !== null && searchParams.get("isHighRisk") !== undefined
+          ? searchParams.get("isHighRisk") === "true"
           : undefined,
     };
 
@@ -59,11 +58,11 @@ export async function POST(request: NextRequest) {
   try {
     const body: CreateDiagnosisData = await request.json();
 
-    if (!body.visitId || !body.patientId || !body.diagnosisName || !body.diagnosisType) {
+    if (!body.visitId || !body.patientId || !body.diagnosisName) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: visitId, patientId, diagnosisName, diagnosisType",
+          error: "البيانات المطلوبة: visitId, patientId, diagnosisName",
         },
         { status: 400 }
       );

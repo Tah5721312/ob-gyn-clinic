@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -61,7 +62,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
 
     const fetchPatients = async () => {
       try {
-        const response = await fetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
+        const response = await apiFetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
         const result = await response.json();
         if (result.success) {
           setPatients(result.data.slice(0, 5));
@@ -94,7 +95,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
     try {
       const invoiceNumber = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
 
-      const response = await fetch("/api/invoices", {
+      const response = await apiFetch("/api/invoices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

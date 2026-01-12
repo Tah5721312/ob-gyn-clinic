@@ -11,7 +11,6 @@ export async function createDiagnosis(
     data: {
       diagnosisDate: data.diagnosisDate || new Date(),
       isChronic: data.isChronic || false,
-      isResolved: false,
       ...data,
     },
   });

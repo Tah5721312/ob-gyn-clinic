@@ -23,8 +23,8 @@ export function calculateEDD(lmpDate: Date): Date {
 /**
  * التحقق من وجود حمل نشط
  */
-export function isActivePregnancy(pregnancyStatus: string): boolean {
-  return pregnancyStatus === "جارية";
+export function isActivePregnancy(isActive: boolean): boolean {
+  return isActive;
 }
 
 /**

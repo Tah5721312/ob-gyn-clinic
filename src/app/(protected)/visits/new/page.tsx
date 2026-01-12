@@ -1,6 +1,7 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Search, User, X, Calendar, ChevronDown, ChevronUp, Save, FileText, ArrowRight, ChevronRight } from "lucide-react";
@@ -19,7 +20,7 @@ interface Appointment {
   appointmentType: string;
 }
 
-export default function NewVisitPage() {
+function NewVisitPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
@@ -60,7 +61,7 @@ export default function NewVisitPage() {
       try {
         // جلب قوالب الروشتات فقط - استخدام encodeURIComponent للتأكد من encoding صحيح
         const templateType = encodeURIComponent("روشتة");
-        const response = await fetch(`/api/templates?doctorId=${session.user.doctorId}&templateType=${templateType}&isActive=true`);
+        const response = await apiFetch(`/api/templates?doctorId=${session.user.doctorId}&templateType=${templateType}&isActive=true`);
         const result = await response.json();
         
         console.log("Templates API response:", result);
@@ -99,7 +100,7 @@ export default function NewVisitPage() {
     const visitId = searchParams.get('visitId');
     
     if (patientId && !selectedPatient) {
-      fetch(`/api/patients/${patientId}`)
+      apiFetch(`/api/patients/${patientId}`)
         .then(res => res.json())
         .then(result => {
           if (result.success && result.data) {
@@ -113,7 +114,7 @@ export default function NewVisitPage() {
             
             // إذا كان visitId موجود، جلب بيانات الزيارة وملء النموذج
             if (visitId) {
-              fetch(`/api/visits/${visitId}`)
+              apiFetch(`/api/visits/${visitId}`)
                 .then(res => res.json())
                 .then(visitResult => {
                   if (visitResult.success && visitResult.data) {
@@ -155,7 +156,7 @@ export default function NewVisitPage() {
 
     const fetchPatients = async () => {
       try {
-        const response = await fetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
+        const response = await apiFetch(`/api/patients?search=${encodeURIComponent(searchTerm)}`);
         const result = await response.json();
         if (result.success) {
           setPatients(result.data.slice(0, 5));
@@ -172,7 +173,7 @@ export default function NewVisitPage() {
   // جلب مواعيد المريض
   const loadAppointments = async (patientId: number) => {
     try {
-      const response = await fetch(`/api/appointments?patientId=${patientId}&status=BOOKED`);
+      const response = await apiFetch(`/api/appointments?patientId=${patientId}&status=BOOKED`);
       const result = await response.json();
       if (result.success) {
         const allAppointments = result.data || [];
@@ -209,7 +210,7 @@ export default function NewVisitPage() {
       }
 
       try {
-        const response = await fetch(`/api/visits?patientId=${selectedPatient.id}`);
+        const response = await apiFetch(`/api/visits?patientId=${selectedPatient.id}`);
         const result = await response.json();
 
         if (result.success && result.data && result.data.length > 0) {
@@ -234,7 +235,7 @@ export default function NewVisitPage() {
     }
     
     try {
-      const response = await fetch(`/api/visits?patientId=${selectedPatient.id}`);
+      const response = await apiFetch(`/api/visits?patientId=${selectedPatient.id}`);
       const result = await response.json();
       
       console.log("Last visit API response:", result);
@@ -302,7 +303,7 @@ export default function NewVisitPage() {
     try {
       const visitStartTime = new Date();
       
-      const response = await fetch("/api/visits", {
+      const response = await apiFetch("/api/visits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -344,7 +345,7 @@ export default function NewVisitPage() {
     
     setLoadingPrescriptions(true);
     try {
-      const response = await fetch(`/api/prescriptions?patientId=${selectedPatient.id}`);
+      const response = await apiFetch(`/api/prescriptions?patientId=${selectedPatient.id}`);
       const result = await response.json();
       
       if (result.success && result.data) {
@@ -792,5 +793,13 @@ export default function NewVisitPage() {
           </div>
         )}
       </main>
+  );
+}
+
+export default function NewVisitPage() {
+  return (
+    <Suspense fallback={<div>جاري التحميل...</div>}>
+      <NewVisitPageContent />
+    </Suspense>
   );
 }

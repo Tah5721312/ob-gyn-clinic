@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth.config";
 import { redirect } from "next/navigation";
 import { ScheduleList } from "@/components/schedules/ScheduleList";
 import { prisma } from "@/lib/prisma";

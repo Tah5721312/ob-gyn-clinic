@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
@@ -64,7 +65,7 @@ export function EditInvoiceModal({ isOpen, onClose, onSuccess, invoice }: EditIn
       // Convert date to ISO DateTime format (YYYY-MM-DDTHH:mm:ss.sssZ)
       const invoiceDateTime = new Date(formData.invoiceDate).toISOString();
 
-      const response = await fetch(`/api/invoices/${invoice.id}`, {
+      const response = await apiFetch(`/api/invoices/${invoice.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
