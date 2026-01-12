@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Search, User, X, Calendar, ChevronDown, ChevronUp, Save, FileText } from "lucide-react";
+import { Search, User, X, Calendar, ChevronDown, ChevronUp, Save, FileText, ArrowRight, ChevronRight } from "lucide-react";
 
 interface Patient {
   id: number;
@@ -32,6 +32,9 @@ export default function NewVisitPage() {
   const [showPatientSearch, setShowPatientSearch] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
+  const [showPrescriptionsModal, setShowPrescriptionsModal] = useState(false);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
 
 
   const [formData, setFormData] = useState({
@@ -63,27 +66,21 @@ export default function NewVisitPage() {
         console.log("Templates count:", result.data?.length || 0);
         
         if (result.success && result.data) {
-          // تحويل القوالب إلى الشكل المطلوب
+          // تحويل القوالب إلى الشكل المطلوب - المحتوى كنص عادي
           const allTemplates = result.data
             .map((t: any) => {
-              try {
-                const content = typeof t.content === 'string' ? JSON.parse(t.content) : t.content;
-                return {
-                  id: t.id,
-                  name: t.templateName,
-                  data: content,
-                };
-              } catch (e) {
-                console.error("Error parsing template content:", e, t);
-                return null;
-              }
+              // استخدام المحتوى مباشرة كنص (بدون parse)
+              return {
+                id: t.id,
+                name: t.templateName,
+                data: t.content || "", // المحتوى كنص عادي
+                content: t.content || "", // أيضاً حفظه في content للتوافق
+              };
             })
             .filter((t: any) => t !== null);
           
-          console.log("Parsed templates:", allTemplates.length);
           setTemplates(allTemplates);
         } else {
-          console.warn("No templates found or API error:", result);
           setTemplates([]);
         }
       } catch (error) {
@@ -144,10 +141,17 @@ export default function NewVisitPage() {
       const response = await fetch(`/api/appointments?patientId=${patientId}&status=BOOKED`);
       const result = await response.json();
       if (result.success) {
-        setAppointments(result.data || []);
-        // اختيار أول موعد تلقائياً
-        if (result.data && result.data.length > 0) {
-          setSelectedAppointment(result.data[0]);
+        const allAppointments = result.data || [];
+        // ترتيب المواعيد حسب التاريخ والوقت (الأحدث أولاً)
+        const sortedAppointments = allAppointments.sort((a: Appointment, b: Appointment) => {
+          const dateA = new Date(`${a.appointmentDate}T${a.appointmentTime}`).getTime();
+          const dateB = new Date(`${b.appointmentDate}T${b.appointmentTime}`).getTime();
+          return dateB - dateA; // الأحدث أولاً
+        });
+        setAppointments(sortedAppointments);
+        // اختيار أحدث موعد تلقائياً
+        if (sortedAppointments.length > 0) {
+          setSelectedAppointment(sortedAppointments[0]);
         }
       }
     } catch (error) {
@@ -164,11 +168,16 @@ export default function NewVisitPage() {
 
   // جلب آخر زيارة للمريض
   const loadLastVisit = async () => {
-    if (!selectedPatient) return;
+    if (!selectedPatient) {
+      alert("يرجى اختيار مريضة أولاً");
+      return;
+    }
     
     try {
       const response = await fetch(`/api/visits?patientId=${selectedPatient.id}`);
       const result = await response.json();
+      
+      console.log("Last visit API response:", result);
       
       if (result.success && result.data && result.data.length > 0) {
         // ترتيب حسب التاريخ (الأحدث أولاً)
@@ -179,6 +188,8 @@ export default function NewVisitPage() {
         });
         
         const lastVisit = sortedVisits[0];
+        console.log("Last visit data:", lastVisit);
+        
         setFormData(prev => ({
           ...prev,
           chiefComplaint: lastVisit.chiefComplaint || prev.chiefComplaint,
@@ -195,6 +206,8 @@ export default function NewVisitPage() {
         if (lastVisit.weight || lastVisit.bloodPressureSystolic || lastVisit.pulse || lastVisit.examinationFindings) {
           setShowDetails(true);
         }
+        
+        alert("تم تحميل بيانات آخر زيارة بنجاح");
       } else {
         alert("لا توجد زيارات سابقة لهذه المريضة");
       }
@@ -206,31 +219,8 @@ export default function NewVisitPage() {
 
   // تطبيق قالب الروشتة - يملأ الملاحظات فقط
   const applyTemplate = (template: any) => {
-    console.log("Applying template:", template);
-    console.log("Template data:", template.data);
-    
-    let notesText = "";
-    
-    // إضافة التعليمات العامة
-    if (template.data?.generalInstructions) {
-      notesText = template.data.generalInstructions;
-    }
-    
-    // إضافة الأدوية
-    if (template.data?.medications && Array.isArray(template.data.medications)) {
-      const medicationsText = template.data.medications
-        .map((med: any) => {
-          let medText = med.medicationName || "";
-          if (med.dosage) medText += ` - ${med.dosage}`;
-          if (med.frequency) medText += ` - ${med.frequency}`;
-          if (med.duration) medText += ` - ${med.duration}`;
-          if (med.instructions) medText += ` (${med.instructions})`;
-          return medText;
-        })
-        .join("\n");
-      
-      notesText = notesText ? `${notesText}\n\n${medicationsText}` : medicationsText;
-    }
+    // المحتوى الآن نص عادي دائماً
+    const notesText = template.data || template.content || "";
     
     // تطبيق النص في الملاحظات
     if (notesText) {
@@ -238,9 +228,6 @@ export default function NewVisitPage() {
         ...prev,
         notes: notesText,
       }));
-      console.log("Notes updated:", notesText);
-    } else {
-      console.warn("No content found in template");
     }
   };
 
@@ -279,7 +266,7 @@ export default function NewVisitPage() {
 
       const result = await response.json();
       if (result.success) {
-        router.push(`/visits/${result.data.id}`);
+        router.push(`/appointments`);
       } else {
         alert(result.error || "حدث خطأ أثناء إنشاء الزيارة");
       }
@@ -291,15 +278,52 @@ export default function NewVisitPage() {
     }
   };
 
+  // جلب روشتات المريضة
+  const loadPrescriptions = async () => {
+    if (!selectedPatient) return;
+    
+    setLoadingPrescriptions(true);
+    try {
+      const response = await fetch(`/api/prescriptions?patientId=${selectedPatient.id}`);
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // الروشتات مرتبة من الأحدث (API يرجعها مرتبة)
+        setPrescriptions(result.data);
+        setShowPrescriptionsModal(true);
+      } else {
+        setPrescriptions([]);
+        setShowPrescriptionsModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching prescriptions:", error);
+      setPrescriptions([]);
+      setShowPrescriptionsModal(true);
+    } finally {
+      setLoadingPrescriptions(false);
+    }
+  };
+
   const handlePrescription = () => {
-    // TODO: فتح صفحة/Modal الروشتة
-    alert("سيتم فتح صفحة الروشتة قريباً");
+    if (!selectedPatient) {
+      alert("يرجى اختيار مريضة أولاً");
+      return;
+    }
+    loadPrescriptions();
   };
 
   return (
     <main className="container mx-auto p-6 max-w-3xl">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">كشف جديد</h1>
+          <button
+            onClick={() => router.push(`/appointments`)}
+            className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            title="العودة للمواعيد"
+          >
+            <ChevronRight className="w-4 h-4" />
+            العودة للمواعيد
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-6">
@@ -370,45 +394,23 @@ export default function NewVisitPage() {
             )}
           </div>
 
-          {/* اختيار الموعد - تلقائي إذا كان واحد فقط */}
+          {/* اختيار الموعد - عرض أحدث موعد فقط */}
           {selectedPatient && appointments.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                الموعد *
+                الموعد * {appointments.length > 1 && (
+                  <span className="text-xs text-gray-500 font-normal">
+                    (أحدث موعد من {appointments.length} مواعيد)
+                  </span>
+                )}
               </label>
-              {appointments.length === 1 ? (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-gray-600">
-                    {new Date(appointments[0].appointmentDate).toLocaleDateString('ar-EG')} - 
-                    {new Date(appointments[0].appointmentTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {appointments.map((appointment) => {
-                    const date = new Date(appointment.appointmentDate).toLocaleDateString('ar-EG');
-                    const time = new Date(appointment.appointmentTime).toLocaleTimeString('ar-EG', { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    });
-                    
-                    return (
-                      <button
-                        key={appointment.id}
-                        type="button"
-                        onClick={() => setSelectedAppointment(appointment)}
-                        className={`w-full text-right p-3 border-2 rounded-lg transition-colors ${
-                          selectedAppointment?.id === appointment.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <p className="font-medium text-gray-900">{date} - {time}</p>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-gray-900 font-medium">
+                  {new Date(appointments[0].appointmentDate).toLocaleDateString('ar-EG')} - 
+                  {new Date(appointments[0].appointmentTime).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              
+              </div>
             </div>
           )}
 
@@ -609,7 +611,8 @@ export default function NewVisitPage() {
             <button
               type="button"
               onClick={handlePrescription}
-              className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              disabled={!selectedPatient}
+              className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <FileText size={18} />
               روشتة
@@ -624,6 +627,110 @@ export default function NewVisitPage() {
             </button>
           </div>
         </form>
+
+        {/* Modal الروشتات */}
+        {showPrescriptionsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowPrescriptionsModal(false)}
+            />
+
+            {/* Modal */}
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()}
+              dir="rtl"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  روشتات {selectedPatient?.firstName} {selectedPatient?.lastName}
+                </h2>
+                <button
+                  onClick={() => setShowPrescriptionsModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6">
+                {loadingPrescriptions ? (
+                  <div className="text-center py-8 text-gray-500">جاري التحميل...</div>
+                ) : prescriptions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-4">لا توجد روشتات سابقة</p>
+                    <button
+                      onClick={() => {
+                        setShowPrescriptionsModal(false);
+                        router.push(`/prescriptions/new?patientId=${selectedPatient?.id}${selectedAppointment ? `&visitId=${selectedAppointment.id}` : ''}`);
+                      }}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                      إنشاء روشتة جديدة
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4">
+                      <button
+                        onClick={() => {
+                          setShowPrescriptionsModal(false);
+                          router.push(`/prescriptions/new?patientId=${selectedPatient?.id}${selectedAppointment ? `&visitId=${selectedAppointment.id}` : ''}`);
+                        }}
+                        className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                      >
+                        + روشتة جديدة
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {prescriptions.map((prescription) => (
+                        <div
+                          key={prescription.id}
+                          className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                          onClick={() => {
+                            setShowPrescriptionsModal(false);
+                            router.push(`/prescriptions/${prescription.id}`);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <FileText className="w-4 h-4 text-purple-600" />
+                                <p className="font-medium text-gray-900">
+                                  روشتة #{prescription.id}
+                                </p>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                {new Date(prescription.createdAt).toLocaleDateString('ar-EG', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </p>
+                              {prescription.itemsCount > 0 && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {prescription.itemsCount} دواء
+                                </p>
+                              )}
+                            </div>
+                            <ArrowRight className="w-5 h-5 text-gray-400" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
   );
 }

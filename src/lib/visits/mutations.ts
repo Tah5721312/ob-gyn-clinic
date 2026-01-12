@@ -20,12 +20,10 @@ export interface CreateVisitData {
   pulse?: number;
   respiratoryRate?: number;
   oxygenSaturation?: number;
-  visitType?: string;
   examinationFindings?: string;
   treatmentPlan?: string;
   recommendations?: string;
   nextVisitDate?: Date;
-  visitStatus?: string;
   notes?: string;
 }
 
@@ -43,12 +41,10 @@ export interface UpdateVisitData {
   pulse?: number;
   respiratoryRate?: number;
   oxygenSaturation?: number;
-  visitType?: string;
   examinationFindings?: string;
   treatmentPlan?: string;
   recommendations?: string;
   nextVisitDate?: Date;
-  visitStatus?: string;
   notes?: string;
 }
 
@@ -56,6 +52,37 @@ export async function createVisit(
   prisma: PrismaClient,
   data: CreateVisitData
 ) {
+  // التحقق من وجود زيارة للموعد
+  const existingVisit = await prisma.medicalVisit.findUnique({
+    where: { appointmentId: data.appointmentId },
+  });
+
+  // إذا كانت موجودة، تحديثها بدلاً من إنشاء واحدة جديدة
+  if (existingVisit) {
+    return await prisma.medicalVisit.update({
+      where: { id: existingVisit.id },
+      data: {
+        visitDate: data.visitDate,
+        visitStartTime: data.visitStartTime || existingVisit.visitStartTime,
+        visitEndTime: data.visitEndTime || existingVisit.visitEndTime,
+        chiefComplaint: data.chiefComplaint || existingVisit.chiefComplaint,
+        symptoms: data.symptoms || existingVisit.symptoms,
+        weight: data.weight !== undefined ? data.weight : existingVisit.weight,
+        bloodPressureSystolic: data.bloodPressureSystolic !== undefined ? data.bloodPressureSystolic : existingVisit.bloodPressureSystolic,
+        bloodPressureDiastolic: data.bloodPressureDiastolic !== undefined ? data.bloodPressureDiastolic : existingVisit.bloodPressureDiastolic,
+        temperature: data.temperature !== undefined ? data.temperature : existingVisit.temperature,
+        pulse: data.pulse !== undefined ? data.pulse : existingVisit.pulse,
+        examinationFindings: data.examinationFindings || existingVisit.examinationFindings,
+        treatmentPlan: data.treatmentPlan || existingVisit.treatmentPlan,
+        recommendations: data.recommendations || existingVisit.recommendations,
+        nextVisitDate: data.nextVisitDate || existingVisit.nextVisitDate,
+        notes: data.notes || existingVisit.notes,
+        isDraft: false, // تحديث الزيارة = غير مسودة
+      },
+    });
+  }
+
+  // إنشاء زيارة جديدة
   return await prisma.medicalVisit.create({
     data: {
       appointmentId: data.appointmentId,
@@ -109,8 +136,9 @@ export async function completeVisit(
   return await prisma.medicalVisit.update({
     where: { id: visitId },
     data: {
-      visitStatus: "مكتملة",
+      completedAt: visitEndTime || new Date(),
       visitEndTime: visitEndTime || new Date(),
+      isDraft: false, // الزيارة المكتملة ليست مسودة
     },
   });
 }
