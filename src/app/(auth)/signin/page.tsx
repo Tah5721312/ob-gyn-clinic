@@ -6,24 +6,7 @@ import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Lock, User } from "lucide-react";
 
-/**
- * تحديد URL التوجيه بعد تسجيل الدخول
- * DOCTOR → /
- * RECEPTIONIST → /
- * ADMIN → /
- */
-function getRedirectUrl(role: string): string {
-  switch (role.toUpperCase()) {
-    case "DOCTOR":
-      return "/";
-    case "RECEPTIONIST":
-      return "/";
-    case "ADMIN":
-      return "/";
-    default:
-      return "/";
-  }
-}
+
 
 export default function SignIn() {
   const router = useRouter();
@@ -38,9 +21,10 @@ export default function SignIn() {
   // توجيه المستخدم المسجل بالفعل تلقائياً
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/");
+      // استخدام window.location.href لضمان إعادة تحميل كاملة وتخطي أي مشاكل في الذاكرة المؤقتة أو التوجيه
+      window.location.href = "/";
     }
-  }, [status, router]);
+  }, [status]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,25 +50,8 @@ export default function SignIn() {
         return;
       }
 
-      // بعد نجاح الدخول، ننتظر قليلاً ثم نوجه المستخدم
-      // ملاحظة: useEffect أعلاه سيقوم بالمهمة أيضاً بمجرد تحديث الحالة
-      // ولكن هنا نقوم بجلب الجلسة للتوجيه الدقيق إذا لزم الأمر
-
-      try {
-        // ننتظر تحديث الجلسة
-        const sessionResponse = await apiFetch("/api/auth/session");
-        const sessionData = await sessionResponse.json();
-
-        if (sessionData?.user?.role) {
-          const redirectUrl = getRedirectUrl(sessionData.user.role);
-          router.push(redirectUrl);
-        } else {
-          router.push("/");
-        }
-      } catch (sessionError) {
-        console.error("Error fetching session:", sessionError);
-        router.push("/");
-      }
+      // توجيه إجباري للصفحة الرئيسية
+      window.location.href = "/";
     } catch (error: any) {
       setError(error.message || "حدث خطأ أثناء تسجيل الدخول");
       setLoading(false);
