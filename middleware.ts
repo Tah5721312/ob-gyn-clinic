@@ -8,6 +8,20 @@ export default withAuth(
     const token = req.nextauth.token;
     const pathname = req.nextUrl.pathname;
 
+    // 1. استثناء الصفحات العامة والـ API (تتطابق مع منطق authorized السابق)
+    const publicPaths = ["/signin", "/auth/error"];
+    if (publicPaths.includes(pathname) || pathname.startsWith("/api")) {
+      return NextResponse.next();
+    }
+
+    // 2. التحقق من المصادقة (Auth Check)
+    // إذا لم يكن هناك token، توجيه لصفحة الدخول بدون callbackUrl
+    if (!token) {
+      return NextResponse.redirect(new URL("/signin", req.url));
+    }
+
+    // 3. التحقق من الصلاحيات (Role Based Access Control)
+
     // حماية صفحات الزيارات - للأطباء فقط
     if (pathname.startsWith("/visits") && token?.role !== "DOCTOR") {
       return NextResponse.redirect(new URL("/", req.url));
@@ -54,21 +68,10 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const pathname = req.nextUrl.pathname;
-
-        // السماح بالوصول للصفحات العامة (بدون تسجيل دخول)
-        const publicPaths = ["/signin", "/auth/error"];
-        if (publicPaths.includes(pathname) || pathname.startsWith("/api")) {
-          return true;
-        }
-
-        // إذا لم يكن هناك token، سيتم توجيهه تلقائياً إلى /auth/signin
-        // هذا يشمل الصفحة الرئيسية "/"
-        return !!token;
-      },
+      authorized: () => true, // نترك التحكم الكامل للدالة middleware أعلاه
     },
-  }
+  },
+
 );
 
 export const config = {
