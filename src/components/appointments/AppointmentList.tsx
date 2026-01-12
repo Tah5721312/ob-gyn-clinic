@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft, User as UserIcon, Stethoscope } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AppointmentListItem } from "@/lib/appointments/types";
 import { NewAppointmentModal } from "./NewAppointmentModal";
+import { AppointmentStatus, AppointmentStatusLabels, InvoiceItemType, InvoiceItemTypeLabels } from "@/lib/enumdb";
 
 interface AppointmentListProps {
   initialAppointments?: AppointmentListItem[];
@@ -77,11 +78,11 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; className: string; icon: any }> = {
-      BOOKED: { label: "محجوز", className: "bg-blue-100 text-blue-800", icon: Calendar },
-      CONFIRMED: { label: "مؤكد", className: "bg-green-100 text-green-800", icon: CheckCircle },
-      COMPLETED: { label: "مكتمل", className: "bg-gray-100 text-gray-800", icon: CheckCircle },
-      CANCELLED: { label: "ملغي", className: "bg-red-100 text-red-800", icon: XCircle },
-      NO_SHOW: { label: "لم يحضر", className: "bg-orange-100 text-orange-800", icon: AlertCircle },
+      [AppointmentStatus.BOOKED]: { label: AppointmentStatusLabels[AppointmentStatus.BOOKED], className: "bg-blue-100 text-blue-800", icon: Calendar },
+      [AppointmentStatus.CONFIRMED]: { label: AppointmentStatusLabels[AppointmentStatus.CONFIRMED], className: "bg-green-100 text-green-800", icon: CheckCircle },
+      [AppointmentStatus.COMPLETED]: { label: AppointmentStatusLabels[AppointmentStatus.COMPLETED], className: "bg-gray-100 text-gray-800", icon: CheckCircle },
+      [AppointmentStatus.CANCELLED]: { label: AppointmentStatusLabels[AppointmentStatus.CANCELLED], className: "bg-red-100 text-red-800", icon: XCircle },
+      [AppointmentStatus.NO_SHOW]: { label: AppointmentStatusLabels[AppointmentStatus.NO_SHOW], className: "bg-orange-100 text-orange-800", icon: AlertCircle },
     };
 
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800", icon: Calendar };
@@ -159,14 +160,14 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-right"
+              className="px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-right"
             >
               <option value="">جميع الحالات</option>
-              <option value="BOOKED">محجوز</option>
-              <option value="CONFIRMED">مؤكد</option>
-              <option value="COMPLETED">مكتمل</option>
-              <option value="CANCELLED">ملغي</option>
-              <option value="NO_SHOW">لم يحضر</option>
+              <option value={AppointmentStatus.BOOKED}>{AppointmentStatusLabels[AppointmentStatus.BOOKED]}</option>
+              <option value={AppointmentStatus.CONFIRMED}>{AppointmentStatusLabels[AppointmentStatus.CONFIRMED]}</option>
+              <option value={AppointmentStatus.COMPLETED}>{AppointmentStatusLabels[AppointmentStatus.COMPLETED]}</option>
+              <option value={AppointmentStatus.CANCELLED}>{AppointmentStatusLabels[AppointmentStatus.CANCELLED]}</option>
+              <option value={AppointmentStatus.NO_SHOW}>{AppointmentStatusLabels[AppointmentStatus.NO_SHOW]}</option>
             </select>
           </div>
 
@@ -263,7 +264,9 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
-                        {appointment.appointmentType}
+                        {appointment.appointmentType && Object.values(InvoiceItemType).includes(appointment.appointmentType as InvoiceItemType)
+                          ? InvoiceItemTypeLabels[appointment.appointmentType as InvoiceItemType]
+                          : appointment.appointmentType || "غير محدد"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -276,6 +279,26 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 justify-start">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/patients/${appointment.patientId}`);
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                          title="فتح ملف المريضة"
+                        >
+                          <User size={18} />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/visits/new?patientId=${appointment.patientId}`);
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                          title="كشف "
+                        >
+                          <Stethoscope size={18} />
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

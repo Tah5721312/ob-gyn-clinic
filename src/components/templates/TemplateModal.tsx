@@ -34,14 +34,32 @@ export function TemplateModal({
   // تحميل بيانات القالب عند التعديل
   useEffect(() => {
     if (template) {
+      // عرض المحتوى كنص عادي مباشرة
+      let contentText = "";
+      if (typeof template.content === "string") {
+        // محاولة parse إذا كان JSON، وإلا عرضه كنص
+        try {
+          const parsed = JSON.parse(template.content);
+          // إذا كان object، نحاول استخراج النص منه
+          if (typeof parsed === "object" && parsed !== null) {
+            // محاولة استخراج النص من الحقول الشائعة
+            contentText = parsed.generalInstructions || parsed.notes || parsed.chiefComplaint || template.content;
+          } else {
+            contentText = template.content;
+          }
+        } catch {
+          // إذا لم يكن JSON صحيح، عرضه كنص عادي
+          contentText = template.content;
+        }
+      } else {
+        contentText = String(template.content || "");
+      }
+      
       setFormData({
         templateName: template.templateName,
         templateType: template.templateType,
         category: template.category || "",
-        content:
-          typeof template.content === "string"
-            ? template.content
-            : JSON.stringify(template.content, null, 2),
+        content: contentText,
         isActive: template.isActive,
         isFavorite: template.isFavorite,
       });
@@ -80,8 +98,6 @@ export function TemplateModal({
     setLoading(true);
 
     try {
-      console.log("Submitting template:", { template, formData });
-      
       // التحقق من أن المحتوى غير فارغ
       if (!formData.content || formData.content.trim() === "") {
         setError("يرجى إدخال محتوى القالب");
@@ -89,45 +105,8 @@ export function TemplateModal({
         return;
       }
       
-      // محاولة تحويل المحتوى إلى JSON
-      let parsedContent;
+      // حفظ المحتوى كنص عادي مباشرة (بدون تحويل إلى JSON)
       const cleanedContent = formData.content.trim();
-      
-      // إذا كان المحتوى يبدأ بـ { فهو JSON، وإلا نحوله إلى JSON
-      if (cleanedContent.startsWith("{") && cleanedContent.endsWith("}")) {
-        // محاولة تحليل JSON
-        try {
-          parsedContent = JSON.parse(cleanedContent);
-          console.log("Parsed content:", parsedContent);
-        } catch (e: any) {
-          console.error("JSON parse error:", e);
-          const errorMessage = e.message || "خطأ في تحليل JSON";
-          let exampleText = "";
-          if (formData.templateType === "روشتة") {
-            exampleText = 'مثال: {"medications": [{"medicationName": "فيتامين د", "dosage": "1000", "frequency": "يومياً", "duration": "شهر"}], "generalInstructions": "تناول مع الطعام"}';
-          } else {
-            exampleText = 'مثال: {"notes": "ملاحظات", "chiefComplaint": "شكوى"}';
-          }
-          setError(`محتوى القالب يجب أن يكون JSON صحيح (ابدأ بـ { وانتهي بـ }).\nالخطأ: ${errorMessage}\n\n${exampleText}`);
-          setLoading(false);
-          return;
-        }
-      } else {
-        // إذا كان نص عادي، نحوله إلى JSON تلقائياً
-        if (formData.templateType === "روشتة") {
-          // للروشتات، نحول النص إلى generalInstructions
-          parsedContent = {
-            generalInstructions: cleanedContent,
-            medications: []
-          };
-        } else {
-          // للزيارات، نحول النص إلى notes
-          parsedContent = {
-            notes: cleanedContent
-          };
-        }
-        console.log("Converted plain text to JSON:", parsedContent);
-      }
 
       const url = template
         ? `/api/templates/${template.id}`
@@ -139,12 +118,10 @@ export function TemplateModal({
         templateName: formData.templateName,
         templateType: formData.templateType,
         category: formData.category || null,
-        content: JSON.stringify(parsedContent),
+        content: cleanedContent, // حفظ كنص عادي مباشرة
         isActive: formData.isActive,
         isFavorite: formData.isFavorite,
       };
-
-      console.log("Request:", { url, method, body: requestBody });
 
       const response = await fetch(url, {
         method,
@@ -152,19 +129,15 @@ export function TemplateModal({
         body: JSON.stringify(requestBody),
       });
 
-      console.log("Response status:", response.status);
       const result = await response.json();
-      console.log("Response result:", result);
 
       if (result.success) {
-        console.log("Template saved successfully");
         setLoading(false);
         onClose();
         if (onSuccess) {
           onSuccess();
         }
       } else {
-        console.error("API error:", result.error);
         setError(result.error || "حدث خطأ أثناء حفظ القالب");
         setLoading(false);
       }
@@ -273,13 +246,13 @@ export function TemplateModal({
             </div>
           </div>
 
-          {/* المحتوى (JSON) */}
+          {/* المحتوى */}
           <div>
             <label
               htmlFor="content"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              المحتوى * (يمكنك كتابة JSON أو نص عادي)
+              المحتوى *
             </label>
             <textarea
               id="content"
@@ -288,20 +261,29 @@ export function TemplateModal({
               onChange={handleChange}
               required
               rows={12}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               placeholder={
                 formData.templateType === "روشتة"
-                  ? '{"medications": [{"medicationName": "فيتامين د", "dosage": "1000 وحدة", "frequency": "مرة يومياً", "duration": "شهر"}], "generalInstructions": "تناول مع الطعام"}'
-                  : '{"chiefComplaint": "متابعة حمل", "notes": "...", "treatmentPlan": "..."}'
+                  ? "مثال:\nفيتامين د - 1000 وحدة - مرة يومياً - شهر\nحديد - حبة واحدة - يومياً - شهر\nكالسيوم - حبتين - يومياً - شهر\n\nملاحظات: تناول مع الطعام"
+                  : "مثال: متابعة حمل\nالوزن: 65 كجم\nالضغط: 120/80\nالنبض: 72\nكل شيء طبيعي"
               }
             />
             <p className="text-xs text-gray-500 mt-1">
-              💡 يمكنك كتابة JSON (يبدأ بـ {"{"}) أو نص عادي (سيتم تحويله تلقائياً)
+              💡 اكتب المحتوى كنص عادي مباشرة
             </p>
             {formData.templateType === "روشتة" && (
-              <p className="text-xs text-blue-600 mt-1">
-                مثال للروشتة: {`{"medications": [{"medicationName": "...", "dosage": "...", "frequency": "...", "duration": "..."}], "generalInstructions": "..."}`}
-              </p>
+              <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs font-medium text-blue-900 mb-1">📋 تنسيق الروشتة:</p>
+                <p className="text-xs text-blue-700 font-mono whitespace-pre-line">
+                  اسم الدواء - الجرعة - التكرار - المدة<br/>
+                  اسم الدواء 2 - الجرعة - التكرار - المدة<br/>
+                  <br/>
+                  ملاحظات إضافية (اختياري)
+                </p>
+                <p className="text-xs text-blue-600 mt-2">
+                  مثال: فيتامين د - 1000 وحدة - مرة يومياً - شهر
+                </p>
+              </div>
             )}
           </div>
 

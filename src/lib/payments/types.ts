@@ -20,6 +20,13 @@ export interface PaymentListItem {
   isRefunded: boolean;
   refundedAt: Date | null;
   createdAt: Date;
+  invoice?: {
+    invoiceNumber: string;
+    patient: {
+      firstName: string;
+      lastName: string;
+    };
+  };
 }
 
 export interface PaymentFilters {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { X, User } from "lucide-react";
-import { BloodType, MaritalStatus } from "@/lib/enumdb";
+import { BloodType, MaritalStatus, emergencyContactRelation, emergencyContactRelationLabels } from "@/lib/enumdb";
 
 interface NewPatientModalProps {
   isOpen: boolean;
@@ -13,7 +13,6 @@ interface NewPatientModalProps {
 export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    nationalId: "",
     firstName: "",
     lastName: "",
     birthDate: "",
@@ -22,6 +21,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
     phone2: "",
     address: "",
     maritalStatus: "",
+    isPregnant: false,
     emergencyContactName: "",
     emergencyContactPhone: "",
     emergencyContactRelation: "",
@@ -32,7 +32,6 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
   useEffect(() => {
     if (!isOpen) {
       setFormData({
-        nationalId: "",
         firstName: "",
         lastName: "",
         birthDate: "",
@@ -41,6 +40,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
         phone2: "",
         address: "",
         maritalStatus: "",
+        isPregnant: false,
         emergencyContactName: "",
         emergencyContactPhone: "",
         emergencyContactRelation: "",
@@ -51,7 +51,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nationalId || !formData.firstName || !formData.lastName || !formData.phone) {
+    if (!formData.firstName || !formData.lastName || !formData.phone) {
       alert("يرجى ملء الحقول المطلوبة");
       return;
     }
@@ -61,8 +61,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
       const response = await fetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nationalId: formData.nationalId,
+          body: JSON.stringify({
           firstName: formData.firstName,
           lastName: formData.lastName,
           birthDate: formData.birthDate || new Date().toISOString(),
@@ -71,6 +70,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
           phone2: formData.phone2 || null,
           address: formData.address || null,
           maritalStatus: formData.maritalStatus || null,
+          isPregnant: formData.isPregnant,
           emergencyContactName: formData.emergencyContactName || null,
           emergencyContactPhone: formData.emergencyContactPhone || null,
           emergencyContactRelation: formData.emergencyContactRelation || null,
@@ -128,21 +128,6 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                الرقم القومي *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.nationalId}
-                onChange={(e) => setFormData({ ...formData, nationalId: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="14 رقم"
-                maxLength={14}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
                 تاريخ الميلاد *
               </label>
               <input
@@ -187,7 +172,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
               <select
                 value={formData.bloodType}
                 onChange={(e) => setFormData({ ...formData, bloodType: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">اختر فصيلة الدم</option>
                 {Object.values(BloodType).map((type) => (
@@ -205,7 +190,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
               <select
                 value={formData.maritalStatus}
                 onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">اختر الحالة</option>
                 {Object.values(MaritalStatus).map((status) => (
@@ -213,6 +198,20 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
                     {status}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                هل المريضة حامل؟
+              </label>
+              <select
+                value={formData.isPregnant ? "true" : "false"}
+                onChange={(e) => setFormData({ ...formData, isPregnant: e.target.value === "true" })}
+                className="w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="false">لا</option>
+                <option value="true">نعم</option>
               </select>
             </div>
           </div>
@@ -279,7 +278,7 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
                 type="tel"
                 value={formData.emergencyContactPhone}
                 onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
@@ -287,13 +286,18 @@ export function NewPatientModal({ isOpen, onClose, onSuccess }: NewPatientModalP
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 صلة القرابة
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.emergencyContactRelation}
                 onChange={(e) => setFormData({ ...formData, emergencyContactRelation: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="زوج، أخ، إلخ"
-              />
+              >
+                <option value="">اختر صلة القرابة</option>
+                {Object.values(emergencyContactRelation).map((relation) => (
+                  <option key={relation} value={relation}>
+                    {emergencyContactRelationLabels[relation]}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

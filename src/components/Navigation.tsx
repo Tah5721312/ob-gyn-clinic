@@ -100,6 +100,13 @@ export default function Navigation() {
                       <FileText size={18} />
                       <span>الفواتير</span>
                     </Link>
+                    <Link
+                      href="/payments"
+                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                    >
+                      <FileText size={18} />
+                      <span>الدفعات</span>
+                    </Link>
                   </>
                 )}
               </>

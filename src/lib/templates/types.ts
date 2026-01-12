@@ -28,7 +28,7 @@ export interface CreateTemplateData {
   templateType: string; // VisitTemplate, DiagnosisTemplate, PrescriptionTemplate, etc.
   templateName: string;
   category?: string; // حمل، التهابات، فيتامينات، إلخ
-  content: string; // JSON string
+  content: string; // free text
   isActive?: boolean;
   isFavorite?: boolean;
 }

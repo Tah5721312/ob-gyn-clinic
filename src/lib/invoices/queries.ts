@@ -119,6 +119,13 @@ export async function getInvoiceById(
           insurance: true,
         },
       },
+      doctor: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
       visit: true,
       items: {
         orderBy: {
@@ -126,6 +133,14 @@ export async function getInvoiceById(
         },
       },
       payments: {
+        include: {
+          receivedBy: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
         orderBy: {
           paymentDate: "desc",
         },

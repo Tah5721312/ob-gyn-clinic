@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import {
   getUsersList,
   getUsersCount,
@@ -55,20 +56,35 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: CreateUserData = await request.json();
+    const body: any = await request.json();
 
     // التحقق من البيانات المطلوبة
-    if (!body.username || !body.passwordHash || !body.role || !body.firstName || !body.lastName || !body.phone) {
+    if (!body.username || !body.password || !body.role || !body.firstName || !body.lastName || !body.phone) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: username, passwordHash, role, firstName, lastName, phone",
+          error: "البيانات المطلوبة: username, password, role, firstName, lastName, phone",
         },
         { status: 400 }
       );
     }
 
-    const user = await createUser(prisma, body);
+    // تشفير كلمة المرور
+    const passwordHash = await bcrypt.hash(body.password, 10);
+
+    const userData: CreateUserData = {
+      username: body.username,
+      passwordHash,
+      role: body.role,
+      doctorId: body.doctorId || null,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email || null,
+      phone: body.phone,
+      isActive: body.isActive ?? true,
+    };
+
+    const user = await createUser(prisma, userData);
 
     return NextResponse.json(
       {

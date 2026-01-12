@@ -10,9 +10,16 @@ export interface VisitListItem {
   visitDate: Date;
   visitStartTime: Date | null;
   visitEndTime: Date | null;
-  visitType: string | null;
-  visitStatus: string;
+  isDraft: boolean;
+  completedAt: Date | null;
   chiefComplaint: string | null;
+  notes: string | null;
+  treatmentPlan: string | null;
+  examinationFindings: string | null;
+  weight: number | null;
+  bloodPressureSystolic: number | null;
+  bloodPressureDiastolic: number | null;
+  pulse: number | null;
   hasDiagnoses: boolean;
 }
 
@@ -20,8 +27,7 @@ export interface VisitFilters {
   patientId?: number;
   doctorId?: number;
   visitDate?: Date;
-  visitStatus?: string;
-  visitType?: string;
+  isDraft?: boolean;
   search?: string;
 }
 

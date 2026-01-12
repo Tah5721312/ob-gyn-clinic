@@ -34,6 +34,7 @@ export default function NewPrescriptionPage() {
   ]);
   const [notes, setNotes] = useState("");
   const [visitId, setVisitId] = useState<number | null>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
 
   // جلب visitId من URL إذا كان موجود
   useEffect(() => {
@@ -42,6 +43,30 @@ export default function NewPrescriptionPage() {
       setVisitId(parseInt(visitIdParam));
     }
   }, [searchParams]);
+
+  // جلب قوالب الروشتات من قاعدة البيانات
+  useEffect(() => {
+    const loadTemplates = async () => {
+      if (!session?.user?.doctorId) return;
+      
+      try {
+        const templateType = encodeURIComponent("روشتة");
+        const response = await fetch(`/api/templates?doctorId=${session.user.doctorId}&templateType=${templateType}&isActive=true`);
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setTemplates(result.data);
+        } else {
+          setTemplates([]);
+        }
+      } catch (error) {
+        console.error("Error loading templates:", error);
+        setTemplates([]);
+      }
+    };
+
+    loadTemplates();
+  }, [session?.user?.doctorId]);
 
   // Templates سريعة للأدوية الشائعة
   const commonMedications = [
@@ -125,6 +150,63 @@ export default function NewPrescriptionPage() {
       duration: med.duration,
     };
     setMedications(updated);
+  };
+
+  // تحليل نص القالب واستخراج الأدوية
+  // التنسيق المتوقع: كل سطر = دواء واحد
+  // مثال: "اسم الدواء - الجرعة - التكرار - المدة"
+  const parseTemplateContent = (content: string): Medication[] => {
+    const lines = content.split('\n').filter(line => line.trim() !== '');
+    const parsedMedications: Medication[] = [];
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine) continue;
+
+      // تقسيم السطر على " - " أو "-" أو "|"
+      const parts = trimmedLine.split(/\s*-\s*|\s*\|\s*/).map(p => p.trim()).filter(p => p);
+      
+      if (parts.length >= 1) {
+        const medication: Medication = {
+          medicationName: parts[0] || "",
+          dosage: parts[1] || "",
+          frequency: parts[2] || "",
+          duration: parts[3] || "",
+          instructions: parts[4] || "",
+        };
+        parsedMedications.push(medication);
+      }
+    }
+
+    return parsedMedications;
+  };
+
+  // تطبيق قالب روشتة
+  const applyTemplate = (template: any) => {
+    const parsedMedications = parseTemplateContent(template.content || "");
+    
+    if (parsedMedications.length > 0) {
+      // إضافة الأدوية المستخرجة
+      setMedications(parsedMedications);
+      
+      // إذا كان هناك ملاحظات إضافية (أسطر لا تحتوي على "-")
+      const lines = template.content.split('\n');
+      const notesLines: string[] = [];
+      
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.includes('-') && !trimmed.includes('|')) {
+          notesLines.push(trimmed);
+        }
+      }
+      
+      if (notesLines.length > 0) {
+        setNotes(notesLines.join('\n'));
+      }
+    } else {
+      // إذا لم يتم استخراج أدوية، استخدام المحتوى كله في الملاحظات
+      setNotes(template.content);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -250,6 +332,31 @@ export default function NewPrescriptionPage() {
               </div>
             )}
           </div>
+
+          {/* قوالب الروشتات */}
+          {selectedPatient && templates.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="block text-sm font-medium text-blue-900 mb-3">
+                قوالب الروشتات
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {templates.map((template) => (
+                  <button
+                    key={template.id}
+                    type="button"
+                    onClick={() => applyTemplate(template)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-blue-100 border-2 border-blue-300 rounded-lg text-sm transition-all font-medium text-blue-700 hover:shadow-md"
+                  >
+                    <span className="text-xl">💊</span>
+                    <span>{template.templateName}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-blue-600 mt-2">
+                💡 التنسيق: اسم الدواء - الجرعة - التكرار - المدة (كل سطر = دواء واحد)
+              </p>
+            </div>
+          )}
 
           {/* الأدوية الشائعة */}
           {selectedPatient && (

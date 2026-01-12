@@ -65,6 +65,17 @@ export async function getPaymentsList(
           lastName: true,
         },
       },
+      invoice: {
+        select: {
+          invoiceNumber: true,
+          patient: {
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -91,6 +102,7 @@ export async function getPaymentsList(
     isRefunded: payment.isRefunded,
     refundedAt: payment.refundedAt,
     createdAt: payment.createdAt,
+    invoice: payment.invoice,
   }));
 }
 
@@ -122,7 +134,6 @@ export async function getPaymentById(
               id: true,
               firstName: true,
               lastName: true,
-              nationalId: true,
             },
           },
         },

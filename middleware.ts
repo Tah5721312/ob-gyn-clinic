@@ -22,9 +22,28 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // حماية صفحات الفواتير - للمحاسبين والأدمن
+    // حماية صفحات الفواتير والدفعات والمالية - للأدمن فقط
     if (
-      pathname.startsWith("/billing") &&
+      (pathname.startsWith("/billing") ||
+       pathname.startsWith("/payments") ||
+       pathname.startsWith("/financial")) &&
+      token?.role !== "ADMIN"
+    ) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    // حماية صفحات الجداول الزمنية - للطبيب والأدمن فقط
+    if (
+      pathname.startsWith("/schedules") &&
+      token?.role !== "DOCTOR" &&
+      token?.role !== "ADMIN"
+    ) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    // حماية صفحات المستخدمين - للأدمن فقط
+    if (
+      pathname.startsWith("/users") &&
       token?.role !== "ADMIN"
     ) {
       return NextResponse.redirect(new URL("/", req.url));

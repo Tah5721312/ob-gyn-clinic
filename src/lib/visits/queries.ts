@@ -18,12 +18,8 @@ function buildWhereClause(filters: VisitFilters) {
     where.visitDate = filters.visitDate;
   }
 
-  if (filters.visitStatus) {
-    where.visitStatus = filters.visitStatus;
-  }
-
-  if (filters.visitType) {
-    where.visitType = filters.visitType;
+  if (filters.isDraft !== undefined) {
+    where.isDraft = filters.isDraft;
   }
 
   if (filters.search) {
@@ -85,9 +81,16 @@ export async function getVisitsList(
     visitDate: visit.visitDate,
     visitStartTime: visit.visitStartTime,
     visitEndTime: visit.visitEndTime,
-    visitType: visit.visitType,
-    visitStatus: visit.visitStatus,
+    isDraft: visit.isDraft,
+    completedAt: visit.completedAt,
     chiefComplaint: visit.chiefComplaint,
+    notes: visit.notes,
+    treatmentPlan: visit.treatmentPlan,
+    examinationFindings: visit.examinationFindings,
+    weight: visit.weight ? Number(visit.weight) : null,
+    bloodPressureSystolic: visit.bloodPressureSystolic,
+    bloodPressureDiastolic: visit.bloodPressureDiastolic,
+    pulse: visit.pulse,
     hasDiagnoses: visit.diagnoses.length > 0,
   }));
 }
@@ -111,6 +114,14 @@ export async function getVisitById(
       doctor: true,
       appointment: true,
       diagnoses: true,
+      prescriptions: {
+        include: {
+          items: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
     },
   });
 }

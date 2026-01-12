@@ -1,6 +1,7 @@
 // lib/visits/mutations.ts
 
 import { PrismaClient } from "@prisma/client";
+import { AppointmentStatus } from "@/lib/enumdb";
 
 export interface CreateVisitData {
   appointmentId: number;
@@ -59,7 +60,7 @@ export async function createVisit(
 
   // إذا كانت موجودة، تحديثها بدلاً من إنشاء واحدة جديدة
   if (existingVisit) {
-    return await prisma.medicalVisit.update({
+    const updatedVisit = await prisma.medicalVisit.update({
       where: { id: existingVisit.id },
       data: {
         visitDate: data.visitDate,
@@ -80,10 +81,20 @@ export async function createVisit(
         isDraft: false, // تحديث الزيارة = غير مسودة
       },
     });
+
+    // تحديث حالة الموعد إلى مكتمل
+    await prisma.appointment.update({
+      where: { id: data.appointmentId },
+      data: {
+        status: AppointmentStatus.COMPLETED,
+      },
+    });
+
+    return updatedVisit;
   }
 
   // إنشاء زيارة جديدة
-  return await prisma.medicalVisit.create({
+  const newVisit = await prisma.medicalVisit.create({
     data: {
       appointmentId: data.appointmentId,
       patientId: data.patientId,
@@ -106,6 +117,16 @@ export async function createVisit(
       isDraft: false, // زيارة جديدة = غير مسودة
     },
   });
+
+  // تحديث حالة الموعد إلى مكتمل
+  await prisma.appointment.update({
+    where: { id: data.appointmentId },
+    data: {
+      status: AppointmentStatus.COMPLETED,
+    },
+  });
+
+  return newVisit;
 }
 
 export async function updateVisit(

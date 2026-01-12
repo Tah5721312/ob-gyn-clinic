@@ -14,6 +14,14 @@ function buildWhereClause(filters: PrescriptionFilters) {
     where.followupId = filters.followupId;
   }
 
+  if (filters.patientId) {
+    // جلب الروشتات من خلال الزيارات أو متابعات الحمل
+    where.OR = [
+      { visit: { patientId: filters.patientId } },
+      { followup: { pregnancy: { patientId: filters.patientId } } },
+    ];
+  }
+
   return where;
 }
 
@@ -32,6 +40,35 @@ export async function getPrescriptionsList(
       _count: {
         select: { items: true },
       },
+      visit: {
+        select: {
+          patientId: true,
+          visitDate: true,
+          patient: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      followup: {
+        select: {
+          pregnancy: {
+            select: {
+              patientId: true,
+              patient: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -47,6 +84,8 @@ export async function getPrescriptionsList(
     notes: prescription.notes,
     itemsCount: prescription._count.items,
     createdAt: prescription.createdAt,
+    visit: prescription.visit,
+    followup: prescription.followup,
   }));
 }
 

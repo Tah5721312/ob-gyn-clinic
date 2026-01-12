@@ -35,6 +35,7 @@ export default function NewVisitPage() {
   const [showPrescriptionsModal, setShowPrescriptionsModal] = useState(false);
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(false);
+  const [hasPreviousVisits, setHasPreviousVisits] = useState(false);
 
 
   const [formData, setFormData] = useState({
@@ -95,6 +96,8 @@ export default function NewVisitPage() {
   // جلب بيانات المريض إذا كان patientId موجود في URL
   useEffect(() => {
     const patientId = searchParams.get('patientId');
+    const visitId = searchParams.get('visitId');
+    
     if (patientId && !selectedPatient) {
       fetch(`/api/patients/${patientId}`)
         .then(res => res.json())
@@ -107,6 +110,37 @@ export default function NewVisitPage() {
               phone: result.data.phone,
             });
             loadAppointments(result.data.id);
+            
+            // إذا كان visitId موجود، جلب بيانات الزيارة وملء النموذج
+            if (visitId) {
+              fetch(`/api/visits/${visitId}`)
+                .then(res => res.json())
+                .then(visitResult => {
+                  if (visitResult.success && visitResult.data) {
+                    const visit = visitResult.data;
+                    setFormData({
+                      visitDate: visit.visitDate ? new Date(visit.visitDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                      chiefComplaint: visit.chiefComplaint || "",
+                      notes: visit.notes || "",
+                      weight: visit.weight ? visit.weight.toString() : "",
+                      bloodPressureSystolic: visit.bloodPressureSystolic ? visit.bloodPressureSystolic.toString() : "",
+                      bloodPressureDiastolic: visit.bloodPressureDiastolic ? visit.bloodPressureDiastolic.toString() : "",
+                      pulse: visit.pulse ? visit.pulse.toString() : "",
+                      examinationFindings: visit.examinationFindings || "",
+                      treatmentPlan: visit.treatmentPlan || "",
+                      nextVisitDate: visit.nextVisitDate ? new Date(visit.nextVisitDate).toISOString().split('T')[0] : "",
+                    });
+                    
+                    // فتح تفاصيل إضافية إذا كانت هناك بيانات
+                    if (visit.weight || visit.bloodPressureSystolic || visit.pulse || visit.examinationFindings) {
+                      setShowDetails(true);
+                    }
+                  }
+                })
+                .catch(error => {
+                  console.error("Error loading visit data:", error);
+                });
+            }
           }
         });
     }
@@ -164,6 +198,32 @@ export default function NewVisitPage() {
     if (selectedPatient) {
       loadAppointments(selectedPatient.id);
     }
+  }, [selectedPatient]);
+
+  // التحقق من وجود زيارات سابقة
+  useEffect(() => {
+    const checkPreviousVisits = async () => {
+      if (!selectedPatient) {
+        setHasPreviousVisits(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/visits?patientId=${selectedPatient.id}`);
+        const result = await response.json();
+
+        if (result.success && result.data && result.data.length > 0) {
+          setHasPreviousVisits(true);
+        } else {
+          setHasPreviousVisits(false);
+        }
+      } catch (error) {
+        console.error("Error checking previous visits:", error);
+        setHasPreviousVisits(false);
+      }
+    };
+
+    checkPreviousVisits();
   }, [selectedPatient]);
 
   // جلب آخر زيارة للمريض
@@ -441,7 +501,7 @@ export default function NewVisitPage() {
           )}
           
           {/* نفس الزيارة السابقة */}
-          {selectedPatient && (
+          {selectedPatient && hasPreviousVisits && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <button
                 type="button"

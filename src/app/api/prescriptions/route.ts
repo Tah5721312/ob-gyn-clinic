@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const filters: PrescriptionFilters = {
       visitId: searchParams.get("visitId") ? parseInt(searchParams.get("visitId")!) : undefined,
       followupId: searchParams.get("followupId") ? parseInt(searchParams.get("followupId")!) : undefined,
+      patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
     };
 
     const prescriptions = await getPrescriptionsList(prisma, filters);

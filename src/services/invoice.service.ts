@@ -92,11 +92,11 @@ export async function calculatePaidAmount(
   invoiceId: number
 ): Promise<number> {
   const payments = await prisma.payment.findMany({
-    where: { invoiceId, isRefund: false },
+    where: { invoiceId, isRefunded: false },
   });
 
   return payments.reduce(
-    (sum, payment) => sum + Number(payment.paymentAmount),
+    (sum: number, payment: { amount: unknown }) => sum + Number(payment.amount),
     0
   );
 }
@@ -115,7 +115,14 @@ export async function updateInvoicePaymentStatus(
   if (!invoice) throw new Error("Invoice not found");
 
   const paidAmount = await calculatePaidAmount(prisma, invoiceId);
-  const netAmount = Number(invoice.netAmount);
+
+  // Calculate totals from base fields to ensure consistency
+  const subtotal = Number(invoice.subtotal);
+  const discount = Number(invoice.discount || 0);
+  const totalAmount = subtotal - discount;
+  const insuranceAmount = Number(invoice.insuranceAmount || 0);
+
+  const netAmount = totalAmount - insuranceAmount;
   const remainingAmount = Math.max(0, netAmount - paidAmount);
   const paymentStatus = resolvePaymentStatus(netAmount, paidAmount);
 
@@ -160,10 +167,8 @@ export async function recalculateInvoiceTotals(
   // حساب الإجماليات
   const totals = calculateInvoiceTotals({
     items: calculatedItems,
-    discountPercentage: Number(invoice.discountPercentage),
-    discountAmount: Number(invoice.discountAmount),
-    taxAmount: Number(invoice.taxAmount),
-    insuranceCoverage: Number(invoice.insuranceCoverage),
+    discountAmount: Number(invoice.discount || 0),
+    insuranceCoverage: Number(invoice.insuranceAmount || 0),
   });
 
   // حساب المدفوع
@@ -198,7 +203,9 @@ export async function validatePaymentAmount(
   if (!invoice) throw new Error("Invoice not found");
 
   const currentPaid = await calculatePaidAmount(prisma, invoiceId);
-  const netAmount = Number(invoice.netAmount);
+  const totalAmount = Number(invoice.totalAmount);
+  const insuranceAmount = Number(invoice.insuranceAmount || 0);
+  const netAmount = totalAmount - insuranceAmount;
   const newPaid = currentPaid + paymentAmount;
 
   if (newPaid > netAmount) {

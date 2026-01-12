@@ -21,8 +21,7 @@ export async function GET(request: NextRequest) {
       patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
       doctorId: searchParams.get("doctorId") ? parseInt(searchParams.get("doctorId")!) : undefined,
       visitDate: searchParams.get("visitDate") ? new Date(searchParams.get("visitDate")!) : undefined,
-      visitStatus: searchParams.get("visitStatus") || undefined,
-      visitType: searchParams.get("visitType") || undefined,
+      isDraft: searchParams.get("isDraft") === "true" ? true : searchParams.get("isDraft") === "false" ? false : undefined,
     };
 
     const visits = await getVisitsList(prisma, filters);

@@ -17,7 +17,7 @@ export default async function PatientsPage() {
 
   return (
     <>
-      <main className="container mx-auto p-6 min-h-screen bg-gray-50">
+      <main className="container mx-auto p-6 min-h-screen bg-gray-50" dir="rtl">
         <PatientList initialPatients={initialPatients} />
       </main>
     </>

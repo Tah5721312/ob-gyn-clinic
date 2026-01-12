@@ -20,6 +20,7 @@ export interface PrescriptionItemData {
 export interface PrescriptionFilters {
   visitId?: number;
   followupId?: number;
+  patientId?: number;
 }
 
 export interface CreatePrescriptionData {

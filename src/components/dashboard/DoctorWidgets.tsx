@@ -24,12 +24,22 @@ export function DoctorWidgets({ session }: { session: any }) {
           color="bg-green-600"
         />
         <BigActionCard
-          title="روشتة سريعة"
-          description="إنشاء روشتة"
+          title="الروشتات"
+          description="عرض الروشتات"
           icon="💊"
-          onClick={() => router.push('/prescriptions/new')}
+          onClick={() => router.push('/prescriptions')}
           color="bg-purple-600"
         />
+      </div>
+      
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <button
+          onClick={() => router.push('/schedules')}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg text-orange-700 font-medium transition-colors"
+        >
+          <span className="text-xl">⏰</span>
+          <span>الجداول الزمنية</span>
+        </button>
       </div>
       
       {/* إدارة القوالب */}

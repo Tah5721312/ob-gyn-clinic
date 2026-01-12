@@ -6,13 +6,12 @@
 
 export interface PatientListItem {
   id: number;
-  nationalId: string;
   firstName: string;
   lastName: string;
   fullName: string;
   phone: string;
   age: number;
-  city: string | null;
+  registrationDate?: Date | string;
   hasInsurance: boolean;
   isPregnant: boolean;
   isActive: boolean;

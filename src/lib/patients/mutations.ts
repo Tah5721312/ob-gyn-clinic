@@ -3,7 +3,6 @@
 import { PrismaClient } from "@prisma/client";
 
 export interface CreatePatientData {
-  nationalId: string;
   firstName: string;
   lastName: string;
   birthDate: Date;
@@ -44,7 +43,7 @@ export async function createPatient(
   return await prisma.patient.create({
     data: {
       ...data,
-    },
+    } as any,
   });
 }
 

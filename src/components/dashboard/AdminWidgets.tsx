@@ -133,6 +133,12 @@ export function AdminWidgets({ session }: { session: any }) {
             onClick={() => router.push('/users')}
           />
           <QuickActionButton
+            title="لوحة التحكم المالية"
+            description="عرض الإحصائيات المالية"
+            icon="💰"
+            onClick={() => router.push('/financial')}
+          />
+          <QuickActionButton
             title="التقارير المالية"
             description="عرض التقارير والإحصائيات"
             icon="📊"
@@ -145,6 +151,17 @@ export function AdminWidgets({ session }: { session: any }) {
             onClick={() => router.push('/settings')}
           />
         </div>
+      </div>
+
+      {/* Schedules */}
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <button
+          onClick={() => router.push('/schedules')}
+          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg text-orange-700 font-medium transition-colors"
+        >
+          <span className="text-xl">⏰</span>
+          <span>الجداول الزمنية</span>
+        </button>
       </div>
 
       {/* Financial Summary */}

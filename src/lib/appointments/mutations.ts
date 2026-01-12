@@ -1,6 +1,7 @@
 // lib/appointments/mutations.ts
 
 import { PrismaClient } from "@prisma/client";
+import { createInvoice, createPayment } from "@/lib/invoices/mutations";
 
 export interface CreateAppointmentData {
   patientId: number;
@@ -14,6 +15,10 @@ export interface CreateAppointmentData {
   notes?: string;
   receptionNotes?: string;
   createdBy?: number;
+  // Payment info
+  totalAmount?: number;
+  paidAmount?: number;
+  paymentMethod?: string;
 }
 
 export interface UpdateAppointmentData {
@@ -36,10 +41,10 @@ export async function createAppointment(
   data: CreateAppointmentData
 ) {
   // تحويل appointmentType إلى visitReason إذا كان موجوداً
-  const { appointmentType, ...restData } = data;
+  const { appointmentType, totalAmount, paidAmount, paymentMethod, ...restData } = data;
   const visitReason = data.visitReason || appointmentType;
-  
-  return await prisma.appointment.create({
+
+  const appointment = await prisma.appointment.create({
     data: {
       status: data.status || "BOOKED",
       durationMinutes: data.durationMinutes || 30,
@@ -47,6 +52,35 @@ export async function createAppointment(
       ...restData,
     },
   });
+
+  // If there's a payment or total amount, create an invoice
+  if (totalAmount || (paidAmount && paidAmount > 0)) {
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+
+    const invoice = await createInvoice(prisma, {
+      invoiceNumber,
+      patientId: data.patientId,
+      doctorId: data.doctorId,
+      appointmentId: appointment.id,
+      invoiceDate: new Date(),
+      totalAmount: totalAmount || (paidAmount || 0), // Default to paid amount if no total specified
+      subtotalAmount: totalAmount || (paidAmount || 0),
+      notes: "فاتورة حجز موعد"
+    });
+
+    // If there's a payment, create payment record
+    if (paidAmount && paidAmount > 0 && paymentMethod) {
+      await createPayment(prisma, {
+        invoiceId: invoice.id,
+        paymentAmount: paidAmount,
+        paymentMethod: paymentMethod,
+        processedBy: data.createdBy,
+        notes: "دفعة حجز موعد"
+      });
+    }
+  }
+
+  return appointment;
 }
 
 export async function updateAppointment(
@@ -57,11 +91,11 @@ export async function updateAppointment(
   // تحويل appointmentType إلى visitReason إذا كان موجوداً
   const { appointmentType, ...restData } = data;
   const updateData: any = { ...restData };
-  
+
   if (appointmentType !== undefined) {
     updateData.visitReason = appointmentType;
   }
-  
+
   return await prisma.appointment.update({
     where: { id: appointmentId },
     data: updateData,
@@ -72,6 +106,19 @@ export async function deleteAppointment(
   prisma: PrismaClient,
   appointmentId: number
 ) {
+  // التحقق من وجود زيارة مرتبطة بالموعد
+  const visit = await prisma.medicalVisit.findUnique({
+    where: { appointmentId },
+  });
+
+  // إذا كانت هناك زيارة، حذفها أولاً
+  if (visit) {
+    await prisma.medicalVisit.delete({
+      where: { appointmentId },
+    });
+  }
+
+  // ثم حذف الموعد
   return await prisma.appointment.delete({
     where: { id: appointmentId },
   });

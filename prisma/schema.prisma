@@ -17,7 +17,6 @@ datasource db {
 
 model Patient {
   id            Int      @id @default(autoincrement())
-  nationalId    String   @unique @db.VarChar(14)
   firstName     String   @db.VarChar(50)
   lastName      String   @db.VarChar(50)
   birthDate     DateTime @db.Date
@@ -52,7 +51,6 @@ model Patient {
   insurance        Insurance?        @relation("ActiveInsurance", fields: [insuranceId], references: [id])
   invoices         Invoice[]
 
-  @@index([nationalId])
   @@index([phone])
   @@index([firstName, lastName])
   @@index([isActive])
@@ -487,7 +485,7 @@ model Template {
   templateType String  @db.VarChar(100) // free text: "روشتة"، "تشخيص"، "زيارة"، إلخ
   templateName String  @db.VarChar(200)
   category     String? @db.VarChar(100) // free text: "حمل"، "التهابات"، إلخ (اختياري)
-  content      String  @db.Text // JSON string
+  content      String  @db.Text // free text
   isActive     Boolean @default(true)
   usageCount   Int     @default(0)
   isFavorite   Boolean @default(false)
@@ -608,7 +606,7 @@ model Payment {
   receivedById Int? // المستخدم اللي استلم الفلوس
   notes        String? @db.Text
 
-  isRefunded   Boolean   @default(false)
+  isRefunded   Boolean   @default(false)  //مسترجع للدفع
   refundedAt   DateTime?
   refundReason String?   @db.Text
 

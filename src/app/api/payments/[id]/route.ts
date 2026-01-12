@@ -4,9 +4,7 @@ import {
   getPaymentById,
   updatePayment,
   deletePayment,
-  refundPayment,
   UpdatePaymentData,
-  RefundPaymentData,
 } from "@/lib/payments";
 
 /**
@@ -15,10 +13,11 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const paymentId = parseInt(params.id);
+    const { id } = await params;
+    const paymentId = parseInt(id);
 
     if (isNaN(paymentId)) {
       return NextResponse.json(
@@ -64,10 +63,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const paymentId = parseInt(params.id);
+    const { id } = await params;
+    const paymentId = parseInt(id);
 
     if (isNaN(paymentId)) {
       return NextResponse.json(
@@ -108,10 +108,11 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const paymentId = parseInt(params.id);
+    const { id } = await params;
+    const paymentId = parseInt(id);
 
     if (isNaN(paymentId)) {
       return NextResponse.json(
@@ -141,43 +142,4 @@ export async function DELETE(
   }
 }
 
-/**
- * PATCH /api/payments/[id]/refund
- * استرجاع دفعة
- */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const paymentId = parseInt(params.id);
-
-    if (isNaN(paymentId)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid payment ID",
-        },
-        { status: 400 }
-      );
-    }
-
-    const body: RefundPaymentData = await request.json();
-    const payment = await refundPayment(prisma, paymentId, body);
-
-    return NextResponse.json({
-      success: true,
-      data: payment,
-    });
-  } catch (error: any) {
-    console.error("Error refunding payment:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error.message || "حدث خطأ أثناء استرجاع الدفعة",
-      },
-      { status: 500 }
-    );
-  }
-}
 

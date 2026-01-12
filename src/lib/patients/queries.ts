@@ -14,13 +14,12 @@ import { calculateAge, buildFullName, hasActiveInsurance, hasActivePregnancy } f
 function buildWhereClause(filters: PatientFilters) {
   const where: any = {};
 
-  // البحث في firstName, lastName, phone, nationalId
+  // البحث في firstName, lastName, phone
   if (filters.search) {
     where.OR = [
       { firstName: { contains: filters.search, mode: "insensitive" } },
       { lastName: { contains: filters.search, mode: "insensitive" } },
       { phone: { contains: filters.search, mode: "insensitive" } },
-      { nationalId: { contains: filters.search, mode: "insensitive" } },
     ];
   }
 
@@ -67,10 +66,10 @@ export async function getPatientsList(
     where,
     select: {
       id: true,
-      nationalId: true,
       firstName: true,
       lastName: true,
       birthDate: true,
+      registrationDate: true,
       phone: true,
       isActive: true,
       insurances: {
@@ -107,13 +106,12 @@ export async function getPatientsList(
 
     return {
       id: patient.id,
-      nationalId: patient.nationalId,
       firstName: patient.firstName,
       lastName: patient.lastName,
       fullName: buildFullName(patient.firstName, patient.lastName),
       phone: patient.phone,
       age,
-      city: null, // Removed from schema
+      registrationDate: patient.registrationDate,
       hasInsurance,
       isPregnant,
       isActive: patient.isActive,
@@ -178,7 +176,16 @@ export async function getPatientById(
               lastName: true,
             },
           },
+          prescriptions: {
+            include: {
+              items: true,
+            },
+          },
         },
+      },
+      diagnoses: {
+        orderBy: { createdAt: "desc" },
+        take: 10,
       },
     },
   });

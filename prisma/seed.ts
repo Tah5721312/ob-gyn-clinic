@@ -55,7 +55,7 @@ async function main() {
   // 🗑️ حذف البيانات الموجودة (بترتيب عكسي للعلاقات)
   // ====================================
   console.log('🗑️ حذف البيانات الموجودة...');
-  
+
   // حذف البيانات بترتيب عكسي للعلاقات
   await prisma.payment.deleteMany();
   await prisma.invoiceItem.deleteMany();
@@ -75,14 +75,14 @@ async function main() {
   await prisma.doctor.deleteMany();
   await prisma.medication.deleteMany();
   await prisma.patient.deleteMany();
-  
+
   console.log('✅ تم حذف جميع البيانات الموجودة.');
-  
+
   // ====================================
   // 🔄 إعادة تعيين الـ Sequences
   // ====================================
   console.log('🔄 إعادة تعيين الـ Sequences...');
-  
+
   // إعادة تعيين جميع الـ sequences في PostgreSQL
   await prisma.$executeRawUnsafe(`
     DO $$ 
@@ -98,7 +98,7 @@ async function main() {
       END LOOP;
     END $$;
   `);
-  
+
   console.log('✅ تم إعادة تعيين جميع الـ Sequences.\n');
 
   // ====================================
@@ -108,8 +108,8 @@ async function main() {
   const doctor1 = await prisma.doctor.create({
     data: {
       nationalId: '12345678901234',
-      firstName: 'أحمد',
-      lastName: 'محمد',
+      firstName: 'محمد',
+      lastName: 'عبدالفتاح',
       specialization: 'نساء وتوليد',
       licenseNumber: 'DOC-001',
       phone: '01012345678',
@@ -117,43 +117,7 @@ async function main() {
     },
   });
 
-  const doctor2 = await prisma.doctor.create({
-    data: {
-      nationalId: '23456789012345',
-      firstName: 'فاطمة',
-      lastName: 'علي',
-      specialization: 'نساء وتوليد',
-      licenseNumber: 'DOC-002',
-      phone: '01023456789',
-      isActive: true,
-    },
-  });
-
-  const doctor3 = await prisma.doctor.create({
-    data: {
-      nationalId: '34567890123456',
-      firstName: 'محمود',
-      lastName: 'حسن',
-      specialization: 'نساء وتوليد',
-      licenseNumber: 'DOC-003',
-      phone: '01034567890',
-      isActive: true,
-    },
-  });
-
-  const doctor4 = await prisma.doctor.create({
-    data: {
-      nationalId: '45678901234567',
-      firstName: 'سارة',
-      lastName: 'إبراهيم',
-      specialization: 'نساء وتوليد',
-      licenseNumber: 'DOC-004',
-      phone: '01045678901',
-      isActive: true,
-    },
-  });
-
-  console.log(`✅ تم إنشاء ${4} أطباء\n`);
+  console.log(`✅ تم إنشاء ${1} طبيب\n`);
 
   // ====================================
   // 2️⃣ إنشاء المستخدمين
@@ -161,59 +125,30 @@ async function main() {
   console.log('👤 إنشاء المستخدمين...');
   const hashedPassword = await bcrypt.hash('123456', 10);
 
-  // Admin
   const adminUser = await prisma.user.create({
     data: {
       username: 'admin',
       passwordHash: hashedPassword,
       role: 'ADMIN',
-      firstName: 'مدير',
-      lastName: 'النظام',
+      firstName: 'Admin',
+      lastName: 'User',
       email: 'admin@clinic.com',
       phone: '01000000000',
       isActive: true,
     },
   });
 
-  // Doctors
+  // الدكتور الرئيسي
   const doctorUser = await prisma.user.create({
     data: {
-      username: 'doctor1',
+      username: 'tah57',
       passwordHash: hashedPassword,
       role: 'DOCTOR',
       doctorId: doctor1.id,
       firstName: doctor1.firstName,
       lastName: doctor1.lastName,
-      email: 'doctor1@clinic.com',
+      email: 'tah57@gmail.com',
       phone: doctor1.phone,
-      isActive: true,
-    },
-  });
-
-  const doctorUser2 = await prisma.user.create({
-    data: {
-      username: 'doctor2',
-      passwordHash: hashedPassword,
-      role: 'DOCTOR',
-      doctorId: doctor2.id,
-      firstName: doctor2.firstName,
-      lastName: doctor2.lastName,
-      email: 'doctor2@clinic.com',
-      phone: doctor2.phone,
-      isActive: true,
-    },
-  });
-
-  const doctorUser3 = await prisma.user.create({
-    data: {
-      username: 'doctor3',
-      passwordHash: hashedPassword,
-      role: 'DOCTOR',
-      doctorId: doctor3.id,
-      firstName: doctor3.firstName,
-      lastName: doctor3.lastName,
-      email: 'doctor3@clinic.com',
-      phone: doctor3.phone,
       isActive: true,
     },
   });
@@ -232,44 +167,14 @@ async function main() {
     },
   });
 
-  const receptionUser2 = await prisma.user.create({
-    data: {
-      username: 'reception2',
-      passwordHash: hashedPassword,
-      role: 'RECEPTIONIST',
-      firstName: 'مريم',
-      lastName: 'حسن',
-      email: 'reception2@clinic.com',
-      phone: '01045678901',
-      isActive: true,
-    },
-  });
-
-  const receptionUser3 = await prisma.user.create({
-    data: {
-      username: 'reception3',
-      passwordHash: hashedPassword,
-      role: 'RECEPTIONIST',
-      firstName: 'رانيا',
-      lastName: 'محمود',
-      email: 'reception3@clinic.com',
-      phone: '01056789012',
-      isActive: true,
-    },
-  });
-
-  console.log(`✅ تم إنشاء ${7} مستخدمين (كلمة المرور: 123456)`);
+  console.log(`✅ تم إنشاء ${3} مستخدمين (كلمة المرور: 123456)`);
   console.log(`   📋 قائمة المستخدمين للاختبار:`);
   console.log(`   👑 Admin:`);
   console.log(`     • admin (ADMIN) → /dashboard`);
-  console.log(`   👨‍⚕️ Doctors:`);
-  console.log(`     • doctor1 (DOCTOR) → /dashboard`);
-  console.log(`     • doctor2 (DOCTOR) → /dashboard`);
-  console.log(`     • doctor3 (DOCTOR) → /dashboard`);
+  console.log(`   👨‍⚕️ Doctor:`);
+  console.log(`     • tah57 (DOCTOR) → /dashboard`);
   console.log(`   📅 Reception (→ /appointments):`);
-  console.log(`     • reception (RECEPTIONIST) → /appointments`);
-  console.log(`     • reception2 (RECEPTIONIST) → /appointments`);
-  console.log(`     • reception3 (RECEPTIONIST) → /appointments\n`);
+  console.log(`     • reception (RECEPTIONIST) → /appointments\n`);
 
   // ====================================
   // 3️⃣ إنشاء جداول العمل
@@ -325,117 +230,6 @@ async function main() {
         isActive: true,
       },
     }),
-    // جدول الطبيبة الثانية
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor2.id,
-        dayOfWeek: 3, // الأربعاء
-        dayName: 'الأربعاء',
-        startTime: new Date('1970-01-01T10:00:00'),
-        endTime: new Date('1970-01-01T14:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor2.id,
-        dayOfWeek: 4, // الخميس
-        dayName: 'الخميس',
-        startTime: new Date('1970-01-01T10:00:00'),
-        endTime: new Date('1970-01-01T14:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor2.id,
-        dayOfWeek: 5, // الجمعة
-        dayName: 'الجمعة',
-        startTime: new Date('1970-01-01T16:00:00'),
-        endTime: new Date('1970-01-01T19:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    // جدول الطبيب الثالث
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor3.id,
-        dayOfWeek: 1, // الاثنين
-        dayName: 'الاثنين',
-        startTime: new Date('1970-01-01T14:00:00'),
-        endTime: new Date('1970-01-01T18:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor3.id,
-        dayOfWeek: 2, // الثلاثاء
-        dayName: 'الثلاثاء',
-        startTime: new Date('1970-01-01T14:00:00'),
-        endTime: new Date('1970-01-01T18:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor3.id,
-        dayOfWeek: 4, // الخميس
-        dayName: 'الخميس',
-        startTime: new Date('1970-01-01T14:00:00'),
-        endTime: new Date('1970-01-01T18:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    // جدول الطبيبة الرابعة
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor4.id,
-        dayOfWeek: 0, // الأحد
-        dayName: 'الأحد',
-        startTime: new Date('1970-01-01T08:00:00'),
-        endTime: new Date('1970-01-01T12:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor4.id,
-        dayOfWeek: 2, // الثلاثاء
-        dayName: 'الثلاثاء',
-        startTime: new Date('1970-01-01T08:00:00'),
-        endTime: new Date('1970-01-01T12:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
-    prisma.workingSchedule.create({
-      data: {
-        doctorId: doctor4.id,
-        dayOfWeek: 4, // الخميس
-        dayName: 'الخميس',
-        startTime: new Date('1970-01-01T08:00:00'),
-        endTime: new Date('1970-01-01T12:00:00'),
-        slotDurationMinutes: 30,
-        maxPatientsPerSlot: 1,
-        isActive: true,
-      },
-    }),
   ]);
 
   console.log(`✅ تم إنشاء ${workingSchedules.length} جدول عمل\n`);
@@ -447,7 +241,6 @@ async function main() {
   const patients = await Promise.all([
     prisma.patient.create({
       data: {
-        nationalId: '56789012345678',
         firstName: 'نورا',
         lastName: 'محمد',
         birthDate: new Date('1990-05-15'),
@@ -465,7 +258,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '67890123456789',
         firstName: 'سلمى',
         lastName: 'علي',
         birthDate: new Date('1988-08-20'),
@@ -482,7 +274,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '78901234567890',
         firstName: 'ليلى',
         lastName: 'حسن',
         birthDate: new Date('1992-12-10'),
@@ -496,7 +287,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '89012345678901',
         firstName: 'دينا',
         lastName: 'محمود',
         birthDate: new Date('1995-03-22'),
@@ -513,7 +303,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '90123456789012',
         firstName: 'هناء',
         lastName: 'إبراهيم',
         birthDate: new Date('1987-07-18'),
@@ -530,7 +319,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '01234567890123',
         firstName: 'شيماء',
         lastName: 'عبدالله',
         birthDate: new Date('1994-09-05'),
@@ -547,7 +335,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '12340567890124',
         firstName: 'رحاب',
         lastName: 'محمد',
         birthDate: new Date('1991-11-28'),
@@ -561,7 +348,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '23451678901235',
         firstName: 'آمنة',
         lastName: 'حسين',
         birthDate: new Date('1989-01-14'),
@@ -578,7 +364,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '34562789012346',
         firstName: 'ميرا',
         lastName: 'حسن',
         birthDate: new Date('1993-06-08'),
@@ -595,7 +380,6 @@ async function main() {
     }),
     prisma.patient.create({
       data: {
-        nationalId: '45673890123457',
         firstName: 'نادية',
         lastName: 'فارس',
         birthDate: new Date('1986-04-30'),
@@ -979,7 +763,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient2.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-21'),
         appointmentTime: new Date('1970-01-01T11:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -990,7 +774,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient4.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-24'),
         appointmentTime: new Date('1970-01-01T12:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -1002,7 +786,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient5.id,
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-25'),
         appointmentTime: new Date('1970-01-01T15:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -1013,7 +797,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient6.id,
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-26'),
         appointmentTime: new Date('1970-01-01T15:30:00'),
         status: AppointmentStatus.BOOKED,
@@ -1025,7 +809,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient8.id,
-        doctorId: doctor4.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-27'),
         appointmentTime: new Date('1970-01-01T09:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -1036,7 +820,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient9.id,
-        doctorId: doctor4.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-28'),
         appointmentTime: new Date('1970-01-01T10:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -1047,7 +831,7 @@ async function main() {
     prisma.appointment.create({
       data: {
         patientId: patient10.id,
-        doctorId: doctor4.id,
+        doctorId: doctor1.id,
         appointmentDate: new Date('2024-12-29'),
         appointmentTime: new Date('1970-01-01T11:00:00'),
         status: AppointmentStatus.BOOKED,
@@ -1097,7 +881,7 @@ async function main() {
       data: {
         appointmentId: appointment2.id,
         patientId: patient2.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         visitDate: new Date('2024-12-10'),
         visitStartTime: new Date('2024-12-10T11:00:00'),
         visitEndTime: new Date('2024-12-10T11:30:00'),
@@ -1134,7 +918,7 @@ async function main() {
       data: {
         appointmentId: appointment4.id,
         patientId: patient4.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         visitDate: new Date('2024-12-11'),
         visitStartTime: new Date('2024-12-11T12:00:00'),
         visitEndTime: new Date('2024-12-11T12:30:00'),
@@ -1151,7 +935,7 @@ async function main() {
       data: {
         appointmentId: appointment5.id,
         patientId: patient5.id,
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         visitDate: new Date('2024-12-13'),
         visitStartTime: new Date('2024-12-13T15:00:00'),
         visitEndTime: new Date('2024-12-13T15:30:00'),
@@ -1170,7 +954,7 @@ async function main() {
       data: {
         appointmentId: appointment6.id,
         patientId: patient6.id,
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         visitDate: new Date('2024-12-14'),
         visitStartTime: new Date('2024-12-14T15:30:00'),
         visitEndTime: new Date('2024-12-14T16:00:00'),
@@ -1586,7 +1370,7 @@ async function main() {
       data: {
         invoiceNumber: 'INV-2024-002',
         patientId: patient2.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         visitId: visit2.id,
         invoiceDate: new Date('2024-12-10'),
         subtotal: 500,
@@ -1645,7 +1429,7 @@ async function main() {
       data: {
         invoiceNumber: 'INV-2024-004',
         patientId: patient4.id,
-        doctorId: doctor2.id,
+        doctorId: doctor1.id,
         visitId: visit4.id,
         invoiceDate: new Date('2024-12-11'),
         subtotal: 600,
@@ -1678,7 +1462,7 @@ async function main() {
       data: {
         invoiceNumber: 'INV-2024-005',
         patientId: patient5.id,
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         visitId: visit5.id,
         invoiceDate: new Date('2024-12-13'),
         subtotal: 550,
@@ -1736,7 +1520,7 @@ async function main() {
         paymentTime: new Date('2024-12-10T15:00:00'),
         amount: 450,
         paymentMethod: PaymentMethod.CARD,
-        receivedById: receptionUser2.id,
+        receivedById: receptionUser.id,
       },
     }),
     prisma.payment.create({
@@ -1758,7 +1542,7 @@ async function main() {
         paymentTime: new Date('2024-12-13T17:00:00'),
         amount: 500,
         paymentMethod: PaymentMethod.BANK_TRANSFER,
-        receivedById: receptionUser3.id,
+        receivedById: receptionUser.id,
       },
     }),
   ]);
@@ -1770,67 +1554,99 @@ async function main() {
   // ====================================
   console.log('📄 إنشاء القوالب...');
   const templates = await Promise.all([
+    // قوالب روشتات (نص عادي بالتنسيق: اسم الدواء - الجرعة - التكرار - المدة)
     prisma.template.create({
       data: {
         doctorId: doctor1.id,
         templateType: 'روشتة',
-        templateName: 'روشتة مكملات غذائية',
+        templateName: 'روشتة مكملات غذائية للحمل',
         category: 'حمل',
-        content: JSON.stringify({
-          items: [
-            { medicationName: 'فيروجلوبين', dosage: 'قرص واحد', frequency: 'مرة واحدة يومياً', duration: '30 يوم' },
-            { medicationName: 'فوليك أسيد', dosage: 'قرص واحد', frequency: 'مرة واحدة يومياً', duration: '30 يوم' },
-          ],
-        }),
+        content: `فيروجلوبين - قرص واحد - مرة واحدة يومياً - 30 يوم
+فوليك أسيد - قرص واحد - مرة واحدة يومياً - 30 يوم
+حديد - حبة واحدة - يومياً - شهر`,
         isActive: true,
         isFavorite: true,
       },
     }),
     prisma.template.create({
       data: {
-        doctorId: doctor2.id,
-        templateType: 'ملاحظات طبية',
-        templateName: 'تقرير فحص روتيني',
-        category: 'عام',
-        content: JSON.stringify({
-          template: 'الفحص البدني: طبيعي / غير طبيعي. التوصيات: متابعة دورية.',
-        }),
+        doctorId: doctor1.id,
+        templateType: 'روشتة',
+        templateName: 'روشتة فيتامينات أساسية',
+        category: 'حمل',
+        content: `فيتامين د3 - 1000 وحدة - مرة يومياً - شهر
+كالسيوم - حبتين - يومياً - شهر
+أوميجا 3 - كبسولة واحدة - مرة يومياً - شهر`,
+        isActive: true,
+        isFavorite: true,
+      },
+    }),
+    prisma.template.create({
+      data: {
+        doctorId: doctor1.id,
+        templateType: 'روشتة',
+        templateName: 'روشتة مضاد حيوي',
+        category: 'التهابات',
+        content: `أموكسيسيلين - 500 مجم - كل 8 ساعات - أسبوع
+تناول مع الطعام لتجنب اضطراب المعدة`,
         isActive: true,
         isFavorite: false,
       },
     }),
     prisma.template.create({
       data: {
-        doctorId: doctor3.id,
+        doctorId: doctor1.id,
         templateType: 'روشتة',
         templateName: 'روشتة مكملات متقدمة',
         category: 'حالات خاصة',
-        content: JSON.stringify({
-          items: [
-            { medicationName: 'فيتامين د3', dosage: 'قطرات', frequency: 'يومياً' },
-            { medicationName: 'كالسيوم كاربونيت', dosage: 'قرص واحد', frequency: 'مرتين يومياً' },
-            { medicationName: 'أوميجا 3', dosage: 'كبسولة واحدة', frequency: 'مرة واحدة يومياً' },
-          ],
-        }),
+        content: `فيتامين د3 - قطرات - يومياً - شهر
+كالسيوم كاربونيت - قرص واحد - مرتين يومياً - شهر
+أوميجا 3 - كبسولة واحدة - مرة واحدة يومياً - شهر`,
+        isActive: true,
+        isFavorite: true,
+      },
+    }),
+    // قوالب زيارة (نص عادي)
+    prisma.template.create({
+      data: {
+        doctorId: doctor1.id,
+        templateType: 'زيارة',
+        templateName: 'متابعة حمل روتينية',
+        category: 'حمل',
+        content: `متابعة حمل
+الوزن: طبيعي
+الضغط: طبيعي
+النبض: طبيعي
+كل شيء طبيعي - متابعة دورية`,
         isActive: true,
         isFavorite: true,
       },
     }),
     prisma.template.create({
       data: {
-        doctorId: doctor4.id,
+        doctorId: doctor1.id,
+        templateType: 'زيارة',
+        templateName: 'فحص روتيني',
+        category: 'عام',
+        content: `الفحص البدني: طبيعي
+التوصيات: متابعة دورية`,
+        isActive: true,
+        isFavorite: false,
+      },
+    }),
+    // قوالب استشارة (نص عادي)
+    prisma.template.create({
+      data: {
+        doctorId: doctor1.id,
         templateType: 'استشارة',
         templateName: 'نصائح للحوامل',
         category: 'تثقيف صحي',
-        content: JSON.stringify({
-          recommendations: [
-            'تناول وجبات صحية منتظمة',
-            'شرب كمية كافية من الماء',
-            'ممارسة رياضة خفيفة',
-            'الحصول على قسط كافي من النوم',
-            'تجنب الضغوط النفسية',
-          ],
-        }),
+        content: `نصائح للحوامل:
+- تناول وجبات صحية منتظمة
+- شرب كمية كافية من الماء
+- ممارسة رياضة خفيفة
+- الحصول على قسط كافي من النوم
+- تجنب الضغوط النفسية`,
         isActive: true,
         isFavorite: false,
       },
@@ -1838,31 +1654,30 @@ async function main() {
     prisma.template.create({
       data: {
         doctorId: doctor1.id,
-        templateType: 'نموذج متابعة',
+        templateType: 'زيارة',
         templateName: 'نموذج متابعة حمل أسبوعي',
         category: 'متابعة',
-        content: JSON.stringify({
-          fields: [
-            'العمر الحملي بالأسابيع',
-            'وزن الأم',
-            'ضغط الدم',
-            'الأعراض والشكاوى',
-            'الفحوصات المطلوبة',
-          ],
-        }),
+        content: `متابعة حمل أسبوعي
+- العمر الحملي بالأسابيع
+- وزن الأم
+- ضغط الدم
+- الأعراض والشكاوى
+- الفحوصات المطلوبة`,
         isActive: true,
         isFavorite: true,
       },
     }),
   ]);
 
-  console.log(`✅ تم إنشاء ${templates.length} قالب\n`);
+  const prescriptionTemplates = templates.filter(t => t.templateType === 'روشتة').length;
+  const visitTemplates = templates.filter(t => t.templateType === 'زيارة').length;
+  console.log(`✅ تم إنشاء ${templates.length} قالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)\n`);
 
   console.log('✅ تم إدخال جميع البيانات بنجاح! 🎉\n');
   console.log('📊 ملخص البيانات:');
-  console.log(`   - ${4} أطباء`);
-  console.log(`   - ${7} مستخدمين (كلمة المرور: 123456)`);
-  console.log(`   - ${13} جدول عمل`);
+  console.log(`   - ${1} طبيب`);
+  console.log(`   - ${3} مستخدمين (كلمة المرور: 123456)`);
+  console.log(`   - ${workingSchedules.length} جدول عمل`);
   console.log(`   - ${10} مريضات`);
   console.log(`   - ${4} تأمين`);
   console.log(`   - ${10} تاريخ مرضي`);
@@ -1871,11 +1686,11 @@ async function main() {
   console.log(`   - ${6} زيارات طبية`);
   console.log(`   - ${4} متابعات حمل`);
   console.log(`   - ${6} تشخيصات`);
+  console.log(`   - ${templates.length} قوالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)`);
   console.log(`   - ${8} أدوية`);
   console.log(`   - ${5} روشتات`);
   console.log(`   - ${5} فواتير`);
   console.log(`   - ${4} دفعات`);
-  console.log(`   - ${5} قوالب`);
 }
 
 main()

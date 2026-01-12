@@ -32,7 +32,7 @@ export async function createPayment(
   if (invoice) {
     const newPaidAmount = Number(invoice.paidAmount) + Number(data.amount);
     const newRemainingAmount = Number(invoice.totalAmount) - newPaidAmount;
-    
+
     let paymentStatus = "UNPAID";
     if (newRemainingAmount <= 0) {
       paymentStatus = "PAID";

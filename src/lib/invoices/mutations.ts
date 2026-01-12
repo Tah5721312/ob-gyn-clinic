@@ -24,12 +24,16 @@ export interface CreateInvoiceData {
 }
 
 export interface UpdateInvoiceData {
-  dueDate?: Date;
+  invoiceDate?: Date | string;
+  dueDate?: Date | string;
   // المبالغ الإجمالية
+  subtotal?: number;
+  discount?: number;
   discountPercentage?: number;
   discountAmount?: number;
   taxAmount?: number;
   totalAmount?: number;
+  insuranceAmount?: number;
   insuranceCoverage?: number;
   patientResponsibility?: number;
   netAmount?: number;
@@ -91,10 +95,26 @@ export async function updateInvoice(
   invoiceId: number,
   data: UpdateInvoiceData
 ) {
-  return await prisma.invoice.update({
+  // Convert date strings to Date objects if present
+  const updateData: any = { ...data };
+
+  if (data.invoiceDate) {
+    updateData.invoiceDate = new Date(data.invoiceDate);
+  }
+
+  if (data.dueDate) {
+    updateData.dueDate = new Date(data.dueDate);
+  }
+
+  const updatedInvoice = await prisma.invoice.update({
     where: { id: invoiceId },
-    data,
+    data: updateData,
   });
+
+  // إعادة حساب حالة الدفع والمبلغ المتبقي
+  await updateInvoicePaymentStatus(prisma, invoiceId);
+
+  return updatedInvoice;
 }
 
 export async function deleteInvoice(

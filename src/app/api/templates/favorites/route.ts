@@ -37,20 +37,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: templates.map((t: any) => {
-        try {
-          return {
-            ...t,
-            content: typeof t.content === 'string' ? JSON.parse(t.content) : t.content,
-          };
-        } catch (e) {
-          console.error("Error parsing template content:", e, t);
-          return {
-            ...t,
-            content: t.content, // إرجاع content كما هو إذا فشل parsing
-          };
-        }
-      }),
+      data: templates, // إرجاع المحتوى كنص عادي مباشرة
     });
   } catch (error: any) {
     console.error("Error fetching favorite templates:", error);

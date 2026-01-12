@@ -44,11 +44,8 @@ export async function getDoctorsList(
       firstName: true,
       lastName: true,
       specialization: true,
-      subSpecialization: true,
       licenseNumber: true,
       phone: true,
-      email: true,
-      consultationFee: true,
       isActive: true,
     },
     orderBy: {
@@ -61,7 +58,6 @@ export async function getDoctorsList(
   return doctors.map((doctor) => ({
     ...doctor,
     fullName: buildDoctorFullName(doctor.firstName, doctor.lastName),
-    consultationFee: Number(doctor.consultationFee),
   }));
 }
 

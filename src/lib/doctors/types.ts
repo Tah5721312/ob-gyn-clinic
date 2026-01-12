@@ -7,11 +7,8 @@ export interface DoctorListItem {
   lastName: string;
   fullName: string;
   specialization: string;
-  subSpecialization: string | null;
   licenseNumber: string;
   phone: string;
-  email: string | null;
-  consultationFee: number;
   isActive: boolean;
 }
 

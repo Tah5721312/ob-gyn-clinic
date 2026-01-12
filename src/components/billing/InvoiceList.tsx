@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Calendar, DollarSign, FileText, Plus, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, Calendar, DollarSign, FileText, Plus, CheckCircle, XCircle, Clock, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { InvoiceListItem } from "@/lib/invoices/types";
 import { NewInvoiceModal } from "./NewInvoiceModal";
@@ -156,17 +156,22 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المدفوع</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المتبقي</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {invoices.map((invoice) => (
                   <tr
                     key={invoice.id}
-                    className="hover:bg-gray-50 cursor-pointer"
-                    onClick={() => router.push(`/billing/${invoice.id}`)}
+                    className="hover:bg-gray-50"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-blue-600 font-medium">{invoice.invoiceNumber}</span>
+                      <button
+                        onClick={() => router.push(`/billing/${invoice.id}`)}
+                        className="text-blue-600 font-medium hover:text-blue-800"
+                      >
+                        {invoice.invoiceNumber}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-gray-900">{invoice.patientName}</span>
@@ -185,6 +190,45 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       {getStatusBadge(invoice.paymentStatus)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/billing/${invoice.id}`);
+                          }}
+                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                          title="تعديل"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (confirm(`هل أنت متأكد من حذف الفاتورة ${invoice.invoiceNumber}؟`)) {
+                              try {
+                                const response = await fetch(`/api/invoices/${invoice.id}`, {
+                                  method: "DELETE",
+                                });
+                                const result = await response.json();
+                                if (result.success) {
+                                  setInvoices(invoices.filter(inv => inv.id !== invoice.id));
+                                } else {
+                                  alert(result.error || "حدث خطأ أثناء حذف الفاتورة");
+                                }
+                              } catch (error) {
+                                console.error("Error deleting invoice:", error);
+                                alert("حدث خطأ أثناء حذف الفاتورة");
+                              }
+                            }
+                          }}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          title="حذف"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

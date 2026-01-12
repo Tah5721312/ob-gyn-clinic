@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import {
   getUserById,
   updateUser,
@@ -13,10 +14,11 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
       return NextResponse.json(
@@ -62,10 +64,11 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
       return NextResponse.json(
@@ -77,8 +80,25 @@ export async function PUT(
       );
     }
 
-    const body: UpdateUserData = await request.json();
-    const user = await updateUser(prisma, userId, body);
+    const body: any = await request.json();
+    
+    // إذا كانت هناك كلمة مرور جديدة، قم بتشفيرها
+    const updateData: UpdateUserData = {
+      username: body.username,
+      role: body.role,
+      doctorId: body.doctorId !== undefined ? body.doctorId : undefined,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      email: body.email !== undefined ? body.email : undefined,
+      phone: body.phone,
+      isActive: body.isActive !== undefined ? body.isActive : undefined,
+    };
+    
+    if (body.password) {
+      updateData.passwordHash = await bcrypt.hash(body.password, 10);
+    }
+    
+    const user = await updateUser(prisma, userId, updateData);
 
     return NextResponse.json({
       success: true,
@@ -102,10 +122,11 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = parseInt(params.id);
+    const { id } = await params;
+    const userId = parseInt(id);
 
     if (isNaN(userId)) {
       return NextResponse.json(

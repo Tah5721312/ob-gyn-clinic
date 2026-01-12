@@ -30,7 +30,6 @@ export async function GET(request: NextRequest) {
         searchParams.get("isPregnant") !== null && searchParams.get("isPregnant") !== undefined
           ? searchParams.get("isPregnant") === "true"
           : undefined,
-      city: searchParams.get("city") || undefined,
     };
 
     const patients = await getPatientsList(prisma, filters);
@@ -59,23 +58,36 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: CreatePatientData = await request.json();
+    const body: any = await request.json();
+    const { isPregnant, ...patientData } = body;
 
     // التحقق من البيانات المطلوبة
-    if (!body.nationalId || !body.firstName || !body.lastName || !body.birthDate || !body.phone) {
+    if (!patientData.firstName || !patientData.lastName || !patientData.birthDate || !patientData.phone) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: nationalId, firstName, lastName, birthDate, phone",
+          error: "البيانات المطلوبة: firstName, lastName, birthDate, phone",
         },
         { status: 400 }
       );
     }
 
     const patient = await createPatient(prisma, {
-      ...body,
-      birthDate: new Date(body.birthDate),
+      ...patientData,
+      birthDate: new Date(patientData.birthDate),
     });
+
+    // إذا كانت المريضة حامل، أنشئ سجل حمل جديد
+    if (isPregnant) {
+      await prisma.pregnancyRecord.create({
+        data: {
+          patientId: patient.id,
+          pregnancyNumber: 1,
+          lmpDate: new Date(),
+          isActive: true,
+        },
+      });
+    }
 
     return NextResponse.json(
       {

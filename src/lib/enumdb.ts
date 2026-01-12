@@ -160,6 +160,43 @@ export const UserRoleLabels: Record<UserRole, string> = {
 };
 
 // ====================================
+// 9️⃣ حالة الدفع (Payment Status)
+// ====================================
+export enum PaymentStatus {
+  UNPAID = "UNPAID",
+  PARTIAL = "PARTIAL",
+  PAID = "PAID",
+  CANCELLED = "CANCELLED",
+}
+
+export const PaymentStatusLabels: Record<PaymentStatus, string> = {
+  [PaymentStatus.UNPAID]: "غير مدفوع",
+  [PaymentStatus.PARTIAL]: "مدفوع جزئياً",
+  [PaymentStatus.PAID]: "مدفوع بالكامل",
+  [PaymentStatus.CANCELLED]: "ملغي",
+};
+
+// ====================================
+// 🔟 طرق الدفع (Payment Methods)
+// ====================================
+export enum PaymentMethod {
+  CASH = "CASH",
+  CARD = "CARD",
+  BANK_TRANSFER = "BANK_TRANSFER",
+  INSURANCE = "INSURANCE",
+  CHECK = "CHECK",
+}
+
+export const PaymentMethodLabels: Record<PaymentMethod, string> = {
+  [PaymentMethod.CASH]: "نقدي",
+  [PaymentMethod.CARD]: "بطاقة",
+  [PaymentMethod.BANK_TRANSFER]: "تحويل بنكي",
+  [PaymentMethod.INSURANCE]: "تأمين",
+  [PaymentMethod.CHECK]: "شيك",
+};
+
+// ====================================
+
 // 9️⃣ اقتراحات أنواع القوالب (Template Types Suggestions)
 // ====================================
 // ملاحظة: templateType و category الآن free text في الـ schema
@@ -190,73 +227,55 @@ export const TEMPLATE_CATEGORY_SUGGESTIONS = [
 export enum InvoiceItemType {
   CONSULTATION = "كشف",
   ULTRASOUND = "سونار",
-  PROCEDURE = "إجراء طبي",
-  MEDICATION = "دواء",
-  LAB_TEST = "تحليل",
-  INJECTION = "حقنة",
+  MEDICATION = "متابعة حمل",
   OTHER = "أخرى",
 }
 
 export const InvoiceItemTypeLabels: Record<InvoiceItemType, string> = {
   [InvoiceItemType.CONSULTATION]: "كشف",
   [InvoiceItemType.ULTRASOUND]: "سونار",
-  [InvoiceItemType.PROCEDURE]: "إجراء طبي",
-  [InvoiceItemType.MEDICATION]: "دواء",
-  [InvoiceItemType.LAB_TEST]: "تحليل",
-  [InvoiceItemType.INJECTION]: "حقنة",
+  [InvoiceItemType.MEDICATION]: "متابعة حمل",
   [InvoiceItemType.OTHER]: "أخرى",
 };
 
 
 
-// ====================================
-// 🔟 طريقة الدفع (Payment Method)
-// ====================================
-export enum PaymentMethod {
-  CASH = "CASH",
-  CARD = "CARD",
-  INSURANCE = "INSURANCE",
-  BANK_TRANSFER = "BANK_TRANSFER",
-}
 
-export const PaymentMethodLabels: Record<PaymentMethod, string> = {
-  [PaymentMethod.CASH]: "كاش",
-  [PaymentMethod.CARD]: "كارت",
-  [PaymentMethod.INSURANCE]: "تأمين",
-  [PaymentMethod.BANK_TRANSFER]: "تحويل بنكي",
-};
-
-// ====================================
-// 1️⃣1️⃣ حالة الدفع (Payment Status)
-// ====================================
-export enum PaymentStatus {
-  UNPAID = "UNPAID",
-  PARTIAL = "PARTIAL",
-  PAID = "PAID",
-  OVERDUE = "OVERDUE",
-}
-
-export const PaymentStatusLabels: Record<PaymentStatus, string> = {
-  [PaymentStatus.UNPAID]: "غير مدفوع",
-  [PaymentStatus.PARTIAL]: "مدفوع جزئيًا",
-  [PaymentStatus.PAID]: "مدفوع بالكامل",
-  [PaymentStatus.OVERDUE]: "متأخر",
-};
 
 // ====================================
 // 1️⃣2️⃣ حالة الحجز (Appointment Status)
 // ====================================
 export enum AppointmentStatus {
   BOOKED = "BOOKED",
-  CANCELLED = "CANCELLED",
+  CONFIRMED = "CONFIRMED",
   COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+  NO_SHOW = "NO_SHOW",
 }
 
 export const AppointmentStatusLabels: Record<AppointmentStatus, string> = {
   [AppointmentStatus.BOOKED]: "محجوز",
-  [AppointmentStatus.CANCELLED]: "ملغي",
+  [AppointmentStatus.CONFIRMED]: "مؤكد",
   [AppointmentStatus.COMPLETED]: "مكتمل",
+  [AppointmentStatus.CANCELLED]: "ملغي",
+  [AppointmentStatus.NO_SHOW]: "لم يحضر",
 };
 
 
 
+// ====================================
+export enum emergencyContactRelation {
+    MOTHER = "أم",
+    FATHER = "أب",
+    BROTHER = "أخ",
+    SISTER = "أخت",
+    OTHER = "أخرى",
+}
+
+export const emergencyContactRelationLabels: Record<emergencyContactRelation, string> = {
+  [emergencyContactRelation.MOTHER]: "أم",
+  [emergencyContactRelation.FATHER]: "أب",
+  [emergencyContactRelation.BROTHER]: "أخ",
+  [emergencyContactRelation.SISTER]: "أخت",
+  [emergencyContactRelation.OTHER]: "أخرى",
+};
