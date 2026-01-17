@@ -1,98 +1,428 @@
-# Next.js + Tailwind CSS + TypeScript Starter
+# عيادة النساء والولادة 👶🏥
 
 <div align="center">
-  <h2>🔋 tah_next_templete</h2>
-  <p>Next.js + Tailwind CSS + TypeScript starter packed with useful development features.</p>
-
+  <h2>نظام إدارة عيادة متخصصة في النساء والولادة</h2>
+  <p>تطبيق ويب حديث وسهل الاستخدام لإدارة مرضى النساء والحوامل والعمليات الطبية</p>
+  
+  [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
+  [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC)](https://tailwindcss.com)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-336791)](https://www.postgresql.org)
 </div>
 
-## Features
+---
 
-This repository is 🔋 battery packed with:
+## 📋 المحتويات
 
-- ⚡️ Next.js 16 with App Router
-- ⚛️ React 19
-- ✨ TypeScript
-- 💨 Tailwind CSS 4 — Configured with CSS Variables to extend the **primary** color
-- 💎 Pre-built Components — Components that will **automatically adapt** with your brand color
-- 🃏 Jest — Configured for unit testing
-- 📈 Absolute Import and Path Alias — Import components using `@/` prefix
-- 📏 ESLint — Find and fix problems in your code, also will **auto sort** your imports
-- 💖 Prettier — Format your code consistently
-- 🐶 Husky & Lint Staged — Run scripts on your staged files before they are committed
-- 🤖 Conventional Commit Lint — Make sure you & your teammates follow conventional commit
-- ⏰ Release Please — Generate your changelog by activating the `release-please` workflow
-- 👷 Github Actions — Lint your code on PR
-- 🚘 Automatic Branch and Issue Autolink — Branch will be automatically created on issue **assign**, and auto linked on PR
-- 🔥 Snippets — A collection of useful snippets
-- 👀 Open Graph Helper Function — Generate open graph images for your pages
-- 🗺 Site Map — Automatically generate sitemap.xml
-- 📦 Type-safe Environment Variables — Using Zod for validation
+- [المميزات](#-المميزات)
+- [المتطلبات](#-المتطلبات)
+- [البدء السريع](#-البدء-السريع)
+- [بنية المشروع](#-بنية-المشروع)
+- [الميزات الرئيسية](#-الميزات-الرئيسية)
+- [قاعدة البيانات](#-قاعدة-البيانات)
+- [المصادقة والأمان](#-المصادقة-والأمان)
+- [واجهات API](#-واجهات-api)
+- [التطوير](#-التطوير)
+- [الترخيص](#-الترخيص)
 
-See the 👉 [CHANGELOG.md](./CHANGELOG.md) 👈 for more details.
+---
 
-## Getting Started
+## ✨ المميزات
 
-### 1. Clone this repository
+### 🎯 الميزات الأساسية
 
-   ```bash
-   git clone https://github.com/Tah5721312/tah_next_templete.git
-   cd tah_next_templete
-   ```
+- ✅ **إدارة المرضى** - تسجيل وتتبع بيانات المرضى الشاملة
+- ✅ **جدولة المواعيد** - نظام محترف لحجز وإدارة المواعيد
+- ✅ **السجلات الطبية** - توثيق شامل للفحوصات والتشخيصات
+- ✅ **إدارة الحوامل** - تتبع مراحل الحمل والمتابعة الدورية
+- ✅ **الوصفات الطبية** - إصدار وتتبع الوصفات الدوائية
+- ✅ **الفواتير والدفع** - إدارة الفواتير وتتبع المدفوعات
+- ✅ **التقارير** - تقارير شاملة عن الأداء والمرضى
 
-### 2. Install dependencies
+### 🛠️ التقنيات المستخدمة
 
-It is encouraged to use **pnpm** so the husky hooks can work properly.
+- ⚡ **Next.js** - App Router مع SSR و Static Generation
+- ⚛️ **React** - أحدث إصدار من React
+- 🎨 **Tailwind CSS 4** - تصميم استجابي احترافي
+- 🔒 **NextAuth.js** - مصادقة آمنة ومرنة
+- 📊 **Prisma** - ORM حديث وموثوق
+- 🗄️ **PostgreSQL** - قاعدة بيانات قوية وموثوقة
+- 📝 **TypeScript** - كود آمن وموثوق النوع
+- ✅ **Jest** - اختبارات وحدة شاملة
+- 📈 **ESLint & Prettier** - جودة كود عالية
+
+### 🔐 الأمان والمصادقة
+
+- 🔐 تشفير كلمات المرور (bcrypt)
+- 🛡️ حماية CSRF وWAF
+- 🔑 مفاتيح API آمنة
+- 👥 نظام صلاحيات متقدم (Admin, Doctor, Receptionist, Patient)
+- 📱 دعم تسجيل الدخول الآمن
+
+---
+
+## 📦 المتطلبات
+
+- **Node.js** 18.17 أو أحدث
+- **pnpm** 8+ (أو npm/yarn)
+- **PostgreSQL** 13+
+- **Git**
+
+---
+
+## 🚀 البدء السريع
+
+### 1. استنساخ المستودع
+
+```bash
+git clone https://github.com/your-username/ob-gyn-clinic.git
+cd ob-gyn-clinic
+```
+
+### 2. تثبيت المتطلبات
 
 ```bash
 pnpm install
 ```
 
-### 3. Run the development server
+### 3. إعداد متغيرات البيئة
 
-You can start the server using this command:
+انسخ ملف `.env.example` إلى `.env.local` وأكمل البيانات:
+
+```env
+# قاعدة البيانات
+DATABASE_URL="postgresql://user:password@localhost:5432/ob_gyn_clinic"
+
+# المصادقة
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Prisma
+PRISMA_DATABASE_URL=$DATABASE_URL
+
+
+
+### 4. إعداد قاعدة البيانات
+
+```bash
+# إنشاء قاعدة البيانات
+pnpm prisma migrate dev --name init
+
+# إدراج بيانات تجريبية (اختياري)
+pnpm prisma db seed
+```
+
+### 5. تشغيل خادم التطوير
 
 ```bash
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. You can start editing the page by modifying `src/app/page.tsx`.
+افتح المتصفح على [http://localhost:3000](http://localhost:3000)
 
-### 4. Configure your project
+**حساب تجريبي:**
 
-There are some things you need to change including title, urls, favicons, etc.
+- البريد: `admin@clinic.com`
+- كلمة المرور: `admin123`
 
-Find all comments with !STARTERCONF, then follow the guide.
+---
 
-Don't forget to change the package name in package.json
-
-### 5. Commit Message Convention
-
-This starter is using [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/), it is mandatory to use it to commit changes.
-
-## Project Structure
+## 📁 بنية المشروع
 
 ```
-tah_next_templete/
+ob-gyn-clinic/
 ├── src/
-│   ├── app/          # Next.js App Router pages
-│   ├── lib/          # Utility functions and helpers
-│   ├── constant/     # Configuration and constants
-│   └── styles/       # Global styles
-├── public/           # Static assets
-└── ...
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/            # صفحات المصادقة
+│   │   │   └── signin/
+│   │   ├── (protected)/       # الصفحات المحمية
+│   │   │   ├── appointments/  # المواعيد
+│   │   │   ├── patients/      # المرضى
+│   │   │   ├── prescriptions/ # الوصفات
+│   │   │   ├── billing/       # الفواتير
+│   │   │   ├── visits/        # الزيارات
+│   │   │   ├── schedules/     # الجداول
+│   │   │   └── dashboard/     # لوحة التحكم
+│   │   ├── api/               # endpoints API
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── components/            # مكونات React
+│   │   ├── patients/
+│   │   ├── appointments/
+│   │   ├── billing/
+│   │   ├── dashboard/
+│   │   ├── providers/
+│   │   └── Navigation.tsx
+│   ├── lib/                   # دوال مساعدة
+│   │   ├── api.ts
+│   │   ├── auth-helpers.ts
+│   │   ├── auth.config.ts
+│   │   ├── prisma.ts
+│   │   ├── logger.ts
+│   │   └── utils.ts
+│   ├── services/              # خدمات الأعمال
+│   │   └── invoice.service.ts
+│   ├── types/                 # تعريفات TypeScript
+│   │   ├── auth.ts
+│   │   └── next-auth.d.ts
+│   ├── constant/              # الثوابت
+│   │   ├── config.ts
+│   │   ├── env.ts
+│   │   └── enumdb.ts
+│   ├── styles/                # الأنماط العامة
+│   │   └── globals.css
+│   └── __tests__/             # الاختبارات
+├── prisma/
+│   ├── schema.prisma          # نموذج قاعدة البيانات
+│   ├── seed.ts                # بيانات تجريبية
+│   └── migrations/            # تاريخ التغييرات
+├── public/                    # الملفات الثابتة
+│   ├── images/
+│   ├── fonts/
+│   ├── svg/
+│   └── favicon/
+├── docs/                      # الوثائق
+│   └── AUTH_SYSTEM.md
+├── jest.config.js             # إعدادات Jest
+├── tsconfig.json              # إعدادات TypeScript
+├── next.config.js             # إعدادات Next.js
+├── tailwind.config.ts         # إعدادات Tailwind
+├── postcss.config.js          # إعدادات PostCSS
+├── .env.local                 # متغيرات البيئة (محلي)
+├── package.json
+└── README.md
 ```
 
-## Tech Stack
+---
 
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS 4
-- **Icons:** Lucide React, React Icons
-- **Testing:** Jest + React Testing Library
-- **Code Quality:** ESLint + Prettier
-- **Git Hooks:** Husky + Lint Staged
+## 🎯 الميزات الرئيسية بالتفصيل
 
-## License
+### 👥 إدارة المرضى
 
-This project is private and proprietary.
+- تسجيل مريضات جدد مع بيانات شاملة
+- تتبع السجل الطبي الكامل
+- إدارة بيانات الاتصال والطوارئ
+- تصنيف حسب حالة النشاط
+
+### 📅 جدولة المواعيد
+
+- نظام حجز متقدم مع منع التضارب
+- إشعارات تذكيرية آلية
+- إمكانية إعادة جدولة والإلغاء
+- تقارير الحضور والتغيب
+
+### 🤰 إدارة الحوامل
+
+- تتبع مراحل الحمل
+- جدول الفحوصات الدورية
+- تسجيل النتائج والملاحظات
+- تنبيهات المتابعة المهمة
+
+### 📋 السجلات الطبية
+
+- تسجيل الفحوصات الشاملة
+- توثيق التشخيصات
+- المسح الطبي والأعراض
+- رفع المرفقات الطبية
+
+### 💊 الوصفات الطبية
+
+- إصدار وصفات طبية رقمية
+- تتبع الأدوية الموصوفة
+- سجل الحساسيات من الأدوية
+- تنبيهات التفاعلات الدوائية
+
+### 💰 الفواتير والدفع
+
+- إصدار فواتير احترافية
+- تتبع المدفوعات
+- تقارير مالية شاملة
+- خيارات دفع متعددة
+
+---
+
+## 🗄️ قاعدة البيانات
+
+### الجداول الرئيسية
+
+| الجدول              | الوصف                          |
+| ------------------- | ------------------------------ |
+| `User`              | المستخدمين (الأطباء، الموظفين) |
+| `Patient`           | بيانات المرضى الشاملة          |
+| `Appointment`       | المواعيد المحجوزة              |
+| `MedicalVisit`      | السجلات الطبية                 |
+| `Diagnosis`         | التشخيصات                      |
+| `Prescription`      | الوصفات الطبية                 |
+| `PregnancyRecord`   | سجلات الحمل                    |
+| `PregnancyFollowUp` | متابعات الحمل                  |
+| `Invoice`           | الفواتير                       |
+| `Payment`           | المدفوعات                      |
+| `Insurance`         | بيانات التأمين                 |
+
+[اطلع على تفاصيل Schema الكاملة](prisma/schema.prisma)
+
+---
+
+## 🔐 المصادقة والأمان
+
+- **نظام المصادقة:** NextAuth.js
+- **تشفير كلمات المرور:** bcrypt
+- **الأدوار:**
+  - `ADMIN` - دخول كامل للنظام
+  - `DOCTOR` - إدارة المرضى والفحوصات
+  - `RECEPTIONIST` - جدولة المواعيد والاستقبال
+
+اطلع على [AUTH_SYSTEM.md](docs/AUTH_SYSTEM.md) للتفاصيل الكاملة.
+
+---
+
+## 🔌 واجهات API
+
+### المرضى
+
+- `GET /api/patients` - الحصول على قائمة المرضى
+- `POST /api/patients` - إضافة مريضة جديدة
+- `GET /api/patients/[id]` - الحصول على بيانات مريضة
+- `PUT /api/patients/[id]` - تحديث بيانات مريضة
+- `DELETE /api/patients/[id]` - حذف مريضة
+
+### المواعيد
+
+- `GET /api/appointments` - جميع المواعيد
+- `POST /api/appointments` - حجز موعد جديد
+- `PUT /api/appointments/[id]` - تحديث موعد
+- `DELETE /api/appointments/[id]` - إلغاء موعد
+
+### الزيارات والفحوصات
+
+- `GET /api/visits` - قائمة الزيارات
+- `POST /api/visits` - إنشاء زيارة جديدة
+- `GET /api/diagnoses` - التشخيصات
+- `POST /api/diagnoses` - إضافة تشخيص
+
+### الفواتير والدفع
+
+- `GET /api/invoices` - الفواتير
+- `POST /api/invoices` - إنشاء فاتورة
+- `GET /api/payments` - المدفوعات
+- `POST /api/payments` - تسجيل دفعة
+
+[اطلع على تفاصيل API الكاملة](API_ROUTES_SUMMARY.md)
+
+---
+
+## 🛠️ التطوير
+
+### الأوامر المتاحة
+
+```bash
+# تشغيل خادم التطوير
+pnpm dev
+
+# بناء للإنتاج
+pnpm build
+
+# تشغيل النسخة المُنتجة
+pnpm start
+
+# التحقق من جودة الكود
+pnpm lint
+
+# إصلاح أخطاء التنسيق
+pnpm lint:fix
+
+# التحقق من التوافق مع TypeScript
+pnpm typecheck
+
+# تشغيل الاختبارات
+pnpm test
+
+# مراقبة الاختبارات
+pnpm test:watch
+
+# تنسيق الكود
+pnpm format
+
+# التحقق من التنسيق
+pnpm format:check
+
+# توليد sitemap
+pnpm postbuild
+```
+
+### معايير الكود
+
+- اتباع [Conventional Commits](https://www.conventionalcommits.org/)
+- نمط الكود: ESLint + Prettier
+- TypeScript: Strict Mode
+- الاختبارات: تغطية %80+
+
+### أمثلة على الـ Commits
+
+```bash
+git commit -m "feat(patients): إضافة نموذج إضافة مريضة جديدة"
+git commit -m "fix(appointments): إصلاح تعارض المواعيد"
+git commit -m "docs(readme): تحديث التوثيق"
+git commit -m "refactor(api): تنظيم routes API"
+```
+
+---
+
+## 📚 الوثائق
+
+- [نظام المصادقة](docs/AUTH_SYSTEM.md) - شرح كامل للمصادقة والأدوار
+- [API Routes Summary](API_ROUTES_SUMMARY.md) - جميع endpoints API
+- [Frontend Documentation](FRONTEND_DOCUMENTATION.md) - توثيق الواجهة الأمامية
+- [Changelog](CHANGELOG.md) - سجل التغييرات
+
+---
+
+## 🤝 المساهمة
+
+نرحب بالمساهمات! يرجى اتباع التعليمات التالية:
+
+1. انسخ المستودع (Fork)
+2. أنشئ فرع ميزة (`git checkout -b feature/amazing-feature`)
+3. أرسل التغييرات (`git commit -m 'feat: add amazing feature'`)
+4. ارفع الفرع (`git push origin feature/amazing-feature`)
+5. افتح Pull Request
+
+---
+
+## 📧 الدعم والمساعدة
+
+في حالة وجود أسئلة أو مشاكل:
+
+- تصفح [الأسئلة الشائعة](docs/FAQ.md)
+- افتح [Issue جديدة](https://github.com/your-username/ob-gyn-clinic/issues)
+- تواصل معنا عبر البريد الإلكتروني
+
+---
+
+## 📄 الترخيص
+
+هذا المشروع خاص وحقوق الملكية محفوظة. جميع الحقوق محفوظة © 2025
+
+---
+
+## 🙏 شكر وتقدير
+
+تم بناء هذا المشروع باستخدام التقنيات الحديثة والمكتبات المفتوحة المصدر الموثوقة.
+
+**شكر خاص لـ:**
+
+- فريق Next.js
+- فريق React
+- فريق Tailwind CSS
+- مجتمع TypeScript
+
+---
+
+<div align="center">
+
+**صُنع بـ ❤️ لخدمة المرضى بشكل أفضل**
+
+[⬆ العودة للأعلى](#عيادة-النساء-والولادة-)
+
+</div>
