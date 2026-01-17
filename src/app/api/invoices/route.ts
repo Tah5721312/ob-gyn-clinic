@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import {
   getInvoicesList,
   getInvoicesCount,
   InvoiceFilters,
   createInvoice,
   CreateInvoiceData,
-} from "@/lib/invoices";
+} from '@/lib/invoices';
 
 /**
  * GET /api/invoices
@@ -17,10 +17,14 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
 
     const filters: InvoiceFilters = {
-      search: searchParams.get("search") || undefined,
-      patientId: searchParams.get("patientId") ? parseInt(searchParams.get("patientId")!) : undefined,
-      invoiceDate: searchParams.get("invoiceDate") ? new Date(searchParams.get("invoiceDate")!) : undefined,
-      paymentStatus: searchParams.get("paymentStatus") || undefined,
+      search: searchParams.get('search') || undefined,
+      patientId: searchParams.get('patientId')
+        ? parseInt(searchParams.get('patientId')!)
+        : undefined,
+      invoiceDate: searchParams.get('invoiceDate')
+        ? new Date(searchParams.get('invoiceDate')!)
+        : undefined,
+      paymentStatus: searchParams.get('paymentStatus') || undefined,
     };
 
     const invoices = await getInvoicesList(prisma, filters);
@@ -32,11 +36,11 @@ export async function GET(request: NextRequest) {
       count,
     });
   } catch (error: any) {
-    console.error("Error fetching invoices:", error);
+    console.error('Error fetching invoices:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "حدث خطأ أثناء جلب البيانات",
+        error: error.message || 'حدث خطأ أثناء جلب البيانات',
       },
       { status: 500 }
     );
@@ -55,7 +59,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "البيانات المطلوبة: invoiceNumber, patientId",
+          error: 'البيانات المطلوبة: invoiceNumber, patientId',
         },
         { status: 400 }
       );
@@ -75,14 +79,13 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error: any) {
-    console.error("Error creating invoice:", error);
+    console.error('Error creating invoice:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "حدث خطأ أثناء إنشاء الفاتورة",
+        error: error.message || 'حدث خطأ أثناء إنشاء الفاتورة',
       },
       { status: 500 }
     );
   }
 }
-

@@ -1,7 +1,7 @@
 // middleware.ts
 
-import { withAuth } from "next-auth/middleware";
-import { NextResponse } from "next/server";
+import { withAuth } from 'next-auth/middleware';
+import { NextResponse } from 'next/server';
 
 export default withAuth(
   function middleware(req) {
@@ -9,69 +9,48 @@ export default withAuth(
     const pathname = req.nextUrl.pathname;
 
     // 1. استثناء الصفحات العامة والـ API (تتطابق مع منطق authorized السابق)
-    const publicPaths = ["/signin", "/auth/error"];
-    if (publicPaths.includes(pathname) || pathname.startsWith("/api")) {
+    const publicPaths = ['/signin', '/auth/error'];
+    if (publicPaths.includes(pathname) || pathname.startsWith('/api')) {
       return NextResponse.next();
     }
 
     // 2. التحقق من المصادقة (Auth Check)
     // إذا لم يكن هناك token، توجيه لصفحة الدخول بدون callbackUrl
     if (!token) {
-      return NextResponse.redirect(new URL("/signin", req.url));
+      return NextResponse.redirect(new URL('/signin', req.url));
     }
 
     // 3. التحقق من الصلاحيات (Role Based Access Control)
+    const roleAccess: Record<string, string[]> = {
+      '/users': ['ADMIN'],
+      '/financial': ['ADMIN'],
+      '/payments': ['ADMIN', 'RECEPTIONIST'],
+      '/billing': ['ADMIN', 'RECEPTIONIST'],
+      '/visits': ['DOCTOR', 'ADMIN', 'RECEPTIONIST'],
+      '/visits/new': ['DOCTOR'],
+      '/patients': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+      '/prescriptions': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+      '/appointments': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
+      '/schedules': ['DOCTOR', 'ADMIN'],
+    };
 
-    // حماية صفحات الزيارات - للأطباء فقط
-    if (pathname.startsWith("/visits") && token?.role !== "DOCTOR") {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // حماية صفحات الحجوزات - للاستقبال والأدمن والطبيب
-    if (
-      pathname.startsWith("/appointments") &&
-      token?.role !== "ADMIN" &&
-      token?.role !== "RECEPTIONIST" &&
-      token?.role !== "DOCTOR"
-    ) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // حماية صفحات الفواتير والدفعات والمالية - للأدمن فقط
-    if (
-      (pathname.startsWith("/billing") ||
-        pathname.startsWith("/payments") ||
-        pathname.startsWith("/financial")) &&
-      token?.role !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // حماية صفحات الجداول الزمنية - للطبيب والأدمن فقط
-    if (
-      pathname.startsWith("/schedules") &&
-      token?.role !== "DOCTOR" &&
-      token?.role !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
-
-    // حماية صفحات المستخدمين - للأدمن فقط
-    if (
-      pathname.startsWith("/users") &&
-      token?.role !== "ADMIN"
-    ) {
-      return NextResponse.redirect(new URL("/", req.url));
+    // التحقق من صلاحيات المسار
+    for (const path in roleAccess) {
+      if (pathname.startsWith(path)) {
+        if (!roleAccess[path].includes(token.role)) {
+          return NextResponse.redirect(new URL('/', req.url));
+        }
+        break; // الخروج من الحلقة عند العثور على تطابق
+      }
     }
 
     return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: () => true, // نترك التحكم الكامل للدالة middleware أعلاه
+      authorized: () => true,
     },
-  },
-
+  }
 );
 
 export const config = {
@@ -84,6 +63,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

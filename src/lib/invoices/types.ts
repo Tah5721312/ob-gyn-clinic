@@ -26,7 +26,7 @@ export interface InvoiceListItem {
 export interface InvoiceFilters {
   patientId?: number;
   invoiceDate?: Date;
-  paymentStatus?: string;
+  paymentStatus?: string | string[];
   search?: string;
 }
 
@@ -48,4 +48,3 @@ export interface PaymentListItem {
   referenceNumber: string | null;
   isRefund: boolean;
 }
-

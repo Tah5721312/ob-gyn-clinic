@@ -1,7 +1,7 @@
 // lib/invoices/queries.ts
 
-import { PrismaClient } from "@prisma/client";
-import { InvoiceFilters, InvoiceListItem, PaymentListItem } from "./types";
+import { PrismaClient } from '@prisma/client';
+import { InvoiceFilters, InvoiceListItem, PaymentListItem } from './types';
 
 function buildWhereClause(filters: InvoiceFilters) {
   const where: any = {};
@@ -15,14 +15,26 @@ function buildWhereClause(filters: InvoiceFilters) {
   }
 
   if (filters.paymentStatus) {
-    where.paymentStatus = filters.paymentStatus;
+    if (Array.isArray(filters.paymentStatus)) {
+      where.paymentStatus = { in: filters.paymentStatus };
+    } else {
+      where.paymentStatus = filters.paymentStatus;
+    }
   }
 
   if (filters.search) {
     where.OR = [
-      { invoiceNumber: { contains: filters.search, mode: "insensitive" } },
-      { patient: { firstName: { contains: filters.search, mode: "insensitive" } } },
-      { patient: { lastName: { contains: filters.search, mode: "insensitive" } } },
+      { invoiceNumber: { contains: filters.search, mode: 'insensitive' } },
+      {
+        patient: {
+          firstName: { contains: filters.search, mode: 'insensitive' },
+        },
+      },
+      {
+        patient: {
+          lastName: { contains: filters.search, mode: 'insensitive' },
+        },
+      },
     ];
   }
 
@@ -57,7 +69,7 @@ export async function getInvoicesList(
       },
     },
     orderBy: {
-      invoiceDate: "desc",
+      invoiceDate: 'desc',
     },
     take: limit,
     skip: offset,
@@ -66,7 +78,7 @@ export async function getInvoicesList(
   // جلب عدد البنود لكل فاتورة
   const invoiceIds = invoices.map((inv) => inv.id);
   const itemsCounts = await prisma.invoiceItem.groupBy({
-    by: ["invoiceId"],
+    by: ['invoiceId'],
     where: { invoiceId: { in: invoiceIds } },
     _count: { id: true },
   });
@@ -88,7 +100,8 @@ export async function getInvoicesList(
     taxAmount: 0, // لا يوجد في schema
     totalAmount: Number(invoice.totalAmount),
     insuranceCoverage: Number(invoice.insuranceAmount || 0),
-    patientResponsibility: Number(invoice.totalAmount) - Number(invoice.insuranceAmount || 0),
+    patientResponsibility:
+      Number(invoice.totalAmount) - Number(invoice.insuranceAmount || 0),
     netAmount: Number(invoice.totalAmount),
     paidAmount: Number(invoice.paidAmount),
     remainingAmount: Number(invoice.remainingAmount),
@@ -107,10 +120,7 @@ export async function getInvoicesCount(
   return await prisma.invoice.count({ where });
 }
 
-export async function getInvoiceById(
-  prisma: PrismaClient,
-  invoiceId: number
-) {
+export async function getInvoiceById(prisma: PrismaClient, invoiceId: number) {
   return await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
@@ -129,7 +139,7 @@ export async function getInvoiceById(
       visit: true,
       items: {
         orderBy: {
-          id: "asc",
+          id: 'asc',
         },
       },
       payments: {
@@ -142,7 +152,7 @@ export async function getInvoiceById(
           },
         },
         orderBy: {
-          paymentDate: "desc",
+          paymentDate: 'desc',
         },
       },
     },
@@ -177,7 +187,7 @@ export async function getPaymentsList(
       },
     },
     orderBy: {
-      paymentDate: "desc",
+      paymentDate: 'desc',
     },
     take: limit,
     skip: offset,
@@ -195,4 +205,3 @@ export async function getPaymentsList(
     isRefund: payment.isRefunded,
   }));
 }
-

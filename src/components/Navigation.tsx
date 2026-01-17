@@ -2,10 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
-import { Menu, X, Users, Stethoscope, FileText, UserCircle } from 'lucide-react';
 import AuthButtons from '@/app/components/header/AuthButtons';
+import {
+  Menu,
+  X,
+  Users,
+  Stethoscope,
+  FileText,
+  UserCircle,
+  LogOut,
+} from 'lucide-react';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -21,7 +29,7 @@ export default function Navigation() {
         <div className='flex justify-between items-center py-4'>
           {/* Logo */}
           <h1 className='text-lg md:text-2xl font-bold'>
-            <Link href={'/'} className="hover:opacity-80 transition-opacity">
+            <Link href={'/'} className='hover:opacity-80 transition-opacity'>
               عيادة النساء والولادة
             </Link>
           </h1>
@@ -30,48 +38,76 @@ export default function Navigation() {
           <div className='hidden md:flex items-center gap-3'>
             {isAuthenticated && (
               <>
-                {/* الدكتور - فقط: الرئيسية | اليوم | خروج */}
+                {/* الدكتور - فقط: الرئيسية | اليوم | الزيارات | الروشتات | خروج */}
                 {role === 'DOCTOR' && (
                   <>
                     <Link
-                      href="/"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      href='/'
+                      className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
                     >
                       <span>الرئيسية</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                     >
                       <Users size={18} />
                       <span>اليوم</span>
                     </Link>
+                    <Link
+                      href='/visits'
+                      className='flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors'
+                    >
+                      <Stethoscope size={18} />
+                      <span>الزيارات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
+                    </Link>
                   </>
                 )}
 
-                {/* الاستقبال - المرضى | المواعيد | الفواتير */}
+                {/* الاستقبال - المرضى | المواعيد | الفواتير | الدفعات | الروشتات | خروج */}
                 {role === 'RECEPTIONIST' && (
                   <>
                     <Link
-                      href="/patients"
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
                     >
                       <Users size={18} />
                       <span>المرضى</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                     >
                       <Users size={18} />
                       <span>المواعيد</span>
                     </Link>
                     <Link
-                      href="/billing"
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                      href='/billing'
+                      className='flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors'
                     >
                       <FileText size={18} />
                       <span>الفواتير</span>
+                    </Link>
+                    <Link
+                      href='/payments'
+                      className='flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors'
+                    >
+                      <FileText size={18} />
+                      <span>الدفعات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
                     </Link>
                   </>
                 )}
@@ -80,32 +116,53 @@ export default function Navigation() {
                 {role === 'ADMIN' && (
                   <>
                     <Link
-                      href="/patients"
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
                     >
                       <Users size={18} />
                       <span>المرضى</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                     >
                       <Users size={18} />
                       <span>المواعيد</span>
                     </Link>
                     <Link
-                      href="/billing"
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                      href='/billing'
+                      className='flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors'
                     >
                       <FileText size={18} />
                       <span>الفواتير</span>
                     </Link>
                     <Link
-                      href="/payments"
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                      href='/payments'
+                      className='flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors'
                     >
                       <FileText size={18} />
                       <span>الدفعات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
+                    </Link>
+                    <Link
+                      href='/users'
+                      className='flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors'
+                    >
+                      <UserCircle size={18} />
+                      <span>المستخدمين</span>
+                    </Link>
+                    <Link
+                      href='/financial'
+                      className='flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors'
+                    >
+                      <FileText size={18} />
+                      <span>المالية</span>
                     </Link>
                   </>
                 )}
@@ -113,10 +170,8 @@ export default function Navigation() {
             )}
           </div>
 
-          {/* Auth Buttons and Mobile Menu Toggle */}
+          {/* Mobile Menu Toggle */}
           <div className='flex items-center gap-4'>
-       
-       
             {/* Auth Buttons Component */}
             <AuthButtons />
 
@@ -135,53 +190,85 @@ export default function Navigation() {
           <div className='md:hidden pb-4 space-y-2 border-t border-blue-500 pt-4'>
             {isAuthenticated ? (
               <>
-                {/* الدكتور - فقط: الرئيسية | اليوم */}
+                {/* الدكتور - فقط: الرئيسية | اليوم | الزيارات | الروشتات */}
                 {role === 'DOCTOR' && (
                   <>
                     <Link
-                      href="/"
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      href='/'
+                      className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <span>الرئيسية</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <Users size={18} />
                       <span>اليوم</span>
                     </Link>
+                    <Link
+                      href='/visits'
+                      className='flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <Stethoscope size={18} />
+                      <span>الزيارات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
+                    </Link>
                   </>
                 )}
 
-                {/* الاستقبال - المرضى | المواعيد | الفواتير */}
+                {/* الاستقبال - المرضى | المواعيد | الفواتير | الدفعات | الروشتات */}
                 {role === 'RECEPTIONIST' && (
                   <>
                     <Link
-                      href="/patients"
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <Users size={18} />
                       <span>المرضى</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <Users size={18} />
                       <span>المواعيد</span>
                     </Link>
                     <Link
-                      href="/billing"
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                      href='/billing'
+                      className='flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <FileText size={18} />
                       <span>الفواتير</span>
+                    </Link>
+                    <Link
+                      href='/payments'
+                      className='flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>الدفعات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
                     </Link>
                   </>
                 )}
@@ -190,28 +277,60 @@ export default function Navigation() {
                 {role === 'ADMIN' && (
                   <>
                     <Link
-                      href="/patients"
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <Users size={18} />
                       <span>المرضى</span>
                     </Link>
                     <Link
-                      href="/appointments"
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                      href='/appointments'
+                      className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <Users size={18} />
                       <span>المواعيد</span>
                     </Link>
                     <Link
-                      href="/billing"
-                      className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors"
+                      href='/billing'
+                      className='flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors'
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <FileText size={18} />
                       <span>الفواتير</span>
+                    </Link>
+                    <Link
+                      href='/payments'
+                      className='flex items-center gap-2 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>الدفعات</span>
+                    </Link>
+                    <Link
+                      href='/prescriptions'
+                      className='flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>الروشتات</span>
+                    </Link>
+                    <Link
+                      href='/users'
+                      className='flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <UserCircle size={18} />
+                      <span>المستخدمين</span>
+                    </Link>
+                    <Link
+                      href='/financial'
+                      className='flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <FileText size={18} />
+                      <span>المالية</span>
                     </Link>
                   </>
                 )}
@@ -221,4 +340,5 @@ export default function Navigation() {
         )}
       </div>
     </nav>
-  );}
+  );
+}
