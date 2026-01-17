@@ -34,7 +34,6 @@ export function calculateInvoiceTotals(input: {
   discountPercentage?: number;
   discountAmount?: number;
   taxAmount?: number;
-  insuranceCoverage?: number;
 }) {
   // جمع البنود
   const subtotalAmount = input.items.reduce(
@@ -55,19 +54,13 @@ export function calculateInvoiceTotals(input: {
 
   // الإجمالي
   const totalAmount = subtotalAmount - discountAmount + taxAmount;
-
-  // التأمين
-  const insuranceCoverage = input.insuranceCoverage || 0;
-  const patientResponsibility = totalAmount - insuranceCoverage;
-  const netAmount = patientResponsibility;
+  const netAmount = totalAmount;
 
   return {
     subtotalAmount,
     discountAmount,
     taxAmount,
     totalAmount,
-    insuranceCoverage,
-    patientResponsibility,
     netAmount,
   };
 }
@@ -120,9 +113,7 @@ export async function updateInvoicePaymentStatus(
   const subtotal = Number(invoice.subtotal);
   const discount = Number(invoice.discount || 0);
   const totalAmount = subtotal - discount;
-  const insuranceAmount = Number(invoice.insuranceAmount || 0);
-
-  const netAmount = totalAmount - insuranceAmount;
+  const netAmount = totalAmount;
   const remainingAmount = Math.max(0, netAmount - paidAmount);
   const paymentStatus = resolvePaymentStatus(netAmount, paidAmount);
 
@@ -168,7 +159,6 @@ export async function recalculateInvoiceTotals(
   const totals = calculateInvoiceTotals({
     items: calculatedItems,
     discountAmount: Number(invoice.discount || 0),
-    insuranceCoverage: Number(invoice.insuranceAmount || 0),
   });
 
   // حساب المدفوع
@@ -204,8 +194,7 @@ export async function validatePaymentAmount(
 
   const currentPaid = await calculatePaidAmount(prisma, invoiceId);
   const totalAmount = Number(invoice.totalAmount);
-  const insuranceAmount = Number(invoice.insuranceAmount || 0);
-  const netAmount = totalAmount - insuranceAmount;
+  const netAmount = totalAmount;
   const newPaid = currentPaid + paymentAmount;
 
   if (newPaid > netAmount) {

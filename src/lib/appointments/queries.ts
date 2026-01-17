@@ -22,10 +22,6 @@ function buildWhereClause(filters: AppointmentFilters) {
     where.status = filters.status;
   }
 
-  if (filters.appointmentType) {
-    where.visitReason = filters.appointmentType;
-  }
-
   if (filters.search) {
     where.OR = [
       { patient: { firstName: { contains: filters.search, mode: "insensitive" } } },
@@ -87,7 +83,6 @@ export async function getAppointmentsList(
     doctorName: `${apt.doctor.firstName} ${apt.doctor.lastName}`,
     appointmentDate: apt.appointmentDate,
     appointmentTime: apt.appointmentTime,
-    appointmentType: apt.visitReason || "", // تحويل visitReason إلى appointmentType للواجهة
     status: apt.status,
     priority: "", // إزالة priority لأنه غير موجود في schema
     durationMinutes: apt.durationMinutes,

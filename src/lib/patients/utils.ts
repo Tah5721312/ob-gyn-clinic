@@ -28,13 +28,6 @@ export function buildFullName(firstName: string, lastName: string): string {
 }
 
 /**
- * التحقق من وجود تأمين نشط
- */
-export function hasActiveInsurance(insuranceRecords: Array<{ isActive: boolean }>): boolean {
-  return insuranceRecords.some((record) => record.isActive);
-}
-
-/**
  * التحقق من وجود حمل نشط
  */
 export function hasActivePregnancy(

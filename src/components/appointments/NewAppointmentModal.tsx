@@ -4,7 +4,7 @@ import { apiFetch } from "@/lib/api";
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { Search, User, X, Calendar, Clock, DollarSign } from "lucide-react";
-import { AppointmentStatus, AppointmentStatusLabels, InvoiceItemType, InvoiceItemTypeLabels, PaymentMethod, PaymentMethodLabels } from "@/lib/enumdb";
+import { AppointmentStatus, AppointmentStatusLabels, PaymentMethod, PaymentMethodLabels } from "@/lib/enumdb";
 
 interface Patient {
   id: number;
@@ -18,7 +18,6 @@ interface AppointmentData {
   patientId: number;
   appointmentDate: Date | string;
   appointmentTime: Date | string;
-  appointmentType: string;
   durationMinutes: number;
   notes?: string | null;
   status?: string;
@@ -47,7 +46,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
   const [formData, setFormData] = useState<{
     appointmentDate: string;
     appointmentTime: string;
-    appointmentType: string;
     durationMinutes: number;
     notes: string;
     status: string;
@@ -58,7 +56,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
   }>({
     appointmentDate: new Date().toISOString().split('T')[0],
     appointmentTime: "09:00",
-    appointmentType: InvoiceItemType.CONSULTATION,
     durationMinutes: 30,
     notes: "",
     status: AppointmentStatus.BOOKED,
@@ -99,7 +96,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       setFormData({
         appointmentDate,
         appointmentTime,
-        appointmentType: appointmentToEdit.appointmentType as InvoiceItemType,
         durationMinutes: appointmentToEdit.durationMinutes || 30,
         notes: appointmentToEdit.notes || "",
         status: (appointmentToEdit.status as string) || AppointmentStatus.BOOKED,
@@ -132,7 +128,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       setFormData({
         appointmentDate: new Date().toISOString().split('T')[0],
         appointmentTime: "09:00",
-        appointmentType: InvoiceItemType.CONSULTATION,
         durationMinutes: 30,
         notes: "",
         status: AppointmentStatus.BOOKED,
@@ -344,7 +339,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       const body: any = {
         appointmentDate: formData.appointmentDate,
         appointmentTime: appointmentDateTime.toISOString(),
-        appointmentType: formData.appointmentType,
         durationMinutes: formData.durationMinutes,
         notes: formData.notes || null,
         // Include payment data only if creating new appointment
@@ -542,43 +536,23 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
             </div>
           </div>
 
-          {/* نوع الموعد وصفحته */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                نوع الموعد *
-              </label>
-              <select
-                required
-                value={formData.appointmentType}
-                onChange={(e) => setFormData({ ...formData, appointmentType: e.target.value })}
-                className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                {Object.values(InvoiceItemType).map((type) => (
-                  <option key={type} value={type}>
-                    {InvoiceItemTypeLabels[type as InvoiceItemType]}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-800 mb-3">
-                حالة الموعد *
-              </label>
-              <select
-                required
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              >
-                <option value={AppointmentStatus.BOOKED}>{AppointmentStatusLabels[AppointmentStatus.BOOKED]}</option>
-                <option value={AppointmentStatus.CONFIRMED}>{AppointmentStatusLabels[AppointmentStatus.CONFIRMED]}</option>
-                <option value={AppointmentStatus.COMPLETED}>{AppointmentStatusLabels[AppointmentStatus.COMPLETED]}</option>
-                <option value={AppointmentStatus.CANCELLED}>{AppointmentStatusLabels[AppointmentStatus.CANCELLED]}</option>
-                <option value={AppointmentStatus.NO_SHOW}>{AppointmentStatusLabels[AppointmentStatus.NO_SHOW]}</option>
-              </select>
-            </div>
+          {/* حالة الموعد */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
+              حالة الموعد *
+            </label>
+            <select
+              required
+              value={formData.status}
+              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            >
+              <option value={AppointmentStatus.BOOKED}>{AppointmentStatusLabels[AppointmentStatus.BOOKED]}</option>
+              <option value={AppointmentStatus.CONFIRMED}>{AppointmentStatusLabels[AppointmentStatus.CONFIRMED]}</option>
+              <option value={AppointmentStatus.COMPLETED}>{AppointmentStatusLabels[AppointmentStatus.COMPLETED]}</option>
+              <option value={AppointmentStatus.CANCELLED}>{AppointmentStatusLabels[AppointmentStatus.CANCELLED]}</option>
+              <option value={AppointmentStatus.NO_SHOW}>{AppointmentStatusLabels[AppointmentStatus.NO_SHOW]}</option>
+            </select>
           </div>
 
           {/* Payment Section - Only for New Appointments */}

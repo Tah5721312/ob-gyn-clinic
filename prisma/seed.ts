@@ -31,13 +31,17 @@ cleanDbUrl = cleanDbUrl.replace(/^['"]|['"]$/g, ''); // Remove surrounding quote
 
 // Debug: Log connection info (without password)
 const dbInfo = cleanDbUrl.replace(/:[^:@]+@/, ':****@');
-console.log('🔗 Connecting to database:', dbInfo.split('@')[1]?.split('/')[0] || 'unknown');
+console.log(
+  '🔗 Connecting to database:',
+  dbInfo.split('@')[1]?.split('/')[0] || 'unknown'
+);
 
 const pool = new Pool({
   connectionString: cleanDbUrl,
-  ssl: cleanDbUrl.includes('sslmode=require') || cleanDbUrl.includes('ssl')
-    ? { rejectUnauthorized: false }
-    : false,
+  ssl:
+    cleanDbUrl.includes('sslmode=require') || cleanDbUrl.includes('ssl')
+      ? { rejectUnauthorized: false }
+      : false,
   max: 1, // Use single connection for seed
   connectionTimeoutMillis: 10000, // 10 seconds timeout
 });
@@ -68,7 +72,6 @@ async function main() {
   await prisma.medicalVisit.deleteMany();
   await prisma.appointment.deleteMany();
   await prisma.medicalHistory.deleteMany();
-  await prisma.insurance.deleteMany();
   await prisma.template.deleteMany();
   await prisma.workingSchedule.deleteMany();
   await prisma.user.deleteMany();
@@ -396,65 +399,19 @@ async function main() {
     }),
   ]);
 
-  const [patient1, patient2, patient3, patient4, patient5, patient6, patient7, patient8, patient9, patient10] = patients;
+  const [
+    patient1,
+    patient2,
+    patient3,
+    patient4,
+    patient5,
+    patient6,
+    patient7,
+    patient8,
+    patient9,
+    patient10,
+  ] = patients;
   console.log(`✅ تم إنشاء ${patients.length} مريضة\n`);
-
-  // ====================================
-  // 5️⃣ إنشاء التأمين
-  // ====================================
-  console.log('🛡️ إنشاء التأمين...');
-  const insurances = await Promise.all([
-    prisma.insurance.create({
-      data: {
-        patientId: patient1.id,
-        insuranceCompany: 'شركة التأمين الصحي',
-        policyNumber: 'POL-001',
-        expiryDate: new Date('2025-12-31'),
-        coverageDetails: 'تأمين صحي شامل - تغطية 80%',
-        isActive: true,
-      },
-    }),
-    prisma.insurance.create({
-      data: {
-        patientId: patient2.id,
-        insuranceCompany: 'أليانز للتأمين',
-        policyNumber: 'POL-002',
-        expiryDate: new Date('2025-12-31'),
-        coverageDetails: 'تأمين صحي شامل - تغطية 90%',
-        isActive: true,
-      },
-    }),
-    prisma.insurance.create({
-      data: {
-        patientId: patient4.id,
-        insuranceCompany: 'الأهلية للتأمين',
-        policyNumber: 'POL-003',
-        expiryDate: new Date('2025-12-31'),
-        coverageDetails: 'تأمين صحي شامل - تغطية 85%',
-        isActive: true,
-      },
-    }),
-    prisma.insurance.create({
-      data: {
-        patientId: patient5.id,
-        insuranceCompany: 'شركة التأمين الصحي',
-        policyNumber: 'POL-004',
-        expiryDate: new Date('2025-12-31'),
-        coverageDetails: 'تأمين صحي شامل - تغطية 80%',
-        isActive: true,
-      },
-    }),
-  ]);
-
-  // تحديث التأمين النشط للمرضى
-  await Promise.all([
-    prisma.patient.update({ where: { id: patient1.id }, data: { insuranceId: insurances[0].id } }),
-    prisma.patient.update({ where: { id: patient2.id }, data: { insuranceId: insurances[1].id } }),
-    prisma.patient.update({ where: { id: patient4.id }, data: { insuranceId: insurances[2].id } }),
-    prisma.patient.update({ where: { id: patient5.id }, data: { insuranceId: insurances[3].id } }),
-  ]);
-
-  console.log(`✅ تم إنشاء ${insurances.length} تأمين\n`);
 
   // ====================================
   // 6️⃣ إنشاء التاريخ المرضي
@@ -717,7 +674,14 @@ async function main() {
     }),
   ]);
 
-  const [pregnancy1, pregnancy2, pregnancy3, pregnancy4, pregnancy5, pregnancy6] = pregnancies;
+  const [
+    pregnancy1,
+    pregnancy2,
+    pregnancy3,
+    pregnancy4,
+    pregnancy5,
+    pregnancy6,
+  ] = pregnancies;
   console.log(`✅ تم إنشاء ${pregnancies.length} سجل حمل\n`);
 
   // ====================================
@@ -734,7 +698,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T10:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'متابعة حمل',
+        receptionNotes: 'متابعة حمل',
       },
     }),
     prisma.appointment.create({
@@ -745,7 +709,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T09:30:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 45,
-        visitReason: 'كشف أول',
+        receptionNotes: 'كشف أول',
       },
     }),
     prisma.appointment.create({
@@ -756,7 +720,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T11:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'فحص دوري',
+        receptionNotes: 'فحص دوري',
       },
     }),
     // مواعيد الطبيبة الثانية
@@ -768,7 +732,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T11:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'سونار',
+        receptionNotes: 'سونار',
       },
     }),
     prisma.appointment.create({
@@ -779,7 +743,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T12:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'متابعة حمل',
+        receptionNotes: 'متابعة حمل',
       },
     }),
     // مواعيد الطبيب الثالث
@@ -791,7 +755,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T15:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'فحص دوري',
+        receptionNotes: 'فحص دوري',
       },
     }),
     prisma.appointment.create({
@@ -802,7 +766,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T15:30:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'متابعة حمل',
+        receptionNotes: 'متابعة حمل',
       },
     }),
     // مواعيد الطبيبة الرابعة
@@ -814,7 +778,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T09:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'فحص شامل',
+        receptionNotes: 'فحص شامل',
       },
     }),
     prisma.appointment.create({
@@ -825,7 +789,7 @@ async function main() {
         appointmentTime: new Date('1970-01-01T10:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'متابعة حمل',
+        receptionNotes: 'متابعة حمل',
       },
     }),
     prisma.appointment.create({
@@ -836,16 +800,22 @@ async function main() {
         appointmentTime: new Date('1970-01-01T11:00:00'),
         status: AppointmentStatus.BOOKED,
         durationMinutes: 30,
-        visitReason: 'كشف أول',
+        receptionNotes: 'كشف أول',
       },
     }),
   ]);
 
   const [
-    appointment1, appointment2, appointment3,
-    appointment4, appointment5,
-    appointment6, appointment7,
-    appointment8, appointment9, appointment10
+    appointment1,
+    appointment2,
+    appointment3,
+    appointment4,
+    appointment5,
+    appointment6,
+    appointment7,
+    appointment8,
+    appointment9,
+    appointment10,
   ] = appointments;
 
   console.log(`✅ تم إنشاء ${appointments.length} موعد\n`);
@@ -1669,9 +1639,15 @@ async function main() {
     }),
   ]);
 
-  const prescriptionTemplates = templates.filter(t => t.templateType === 'روشتة').length;
-  const visitTemplates = templates.filter(t => t.templateType === 'زيارة').length;
-  console.log(`✅ تم إنشاء ${templates.length} قالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)\n`);
+  const prescriptionTemplates = templates.filter(
+    (t) => t.templateType === 'روشتة'
+  ).length;
+  const visitTemplates = templates.filter(
+    (t) => t.templateType === 'زيارة'
+  ).length;
+  console.log(
+    `✅ تم إنشاء ${templates.length} قالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)\n`
+  );
 
   console.log('✅ تم إدخال جميع البيانات بنجاح! 🎉\n');
   console.log('📊 ملخص البيانات:');
@@ -1686,7 +1662,9 @@ async function main() {
   console.log(`   - ${6} زيارات طبية`);
   console.log(`   - ${4} متابعات حمل`);
   console.log(`   - ${6} تشخيصات`);
-  console.log(`   - ${templates.length} قوالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)`);
+  console.log(
+    `   - ${templates.length} قوالب (${prescriptionTemplates} روشتات، ${visitTemplates} زيارات)`
+  );
   console.log(`   - ${8} أدوية`);
   console.log(`   - ${5} روشتات`);
   console.log(`   - ${5} فواتير`);

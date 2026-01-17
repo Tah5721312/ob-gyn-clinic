@@ -14,12 +14,28 @@ interface NewPatientModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  patientToEdit?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    birthDate: string | Date;
+    bloodType?: string | null;
+    phone: string;
+    phone2?: string | null;
+    address?: string | null;
+    maritalStatus?: string | null;
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
+    emergencyContactRelation?: string | null;
+    notes?: string | null;
+  } | null;
 }
 
 export function NewPatientModal({
   isOpen,
   onClose,
   onSuccess,
+  patientToEdit,
 }: NewPatientModalProps) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -38,9 +54,32 @@ export function NewPatientModal({
     notes: '',
   });
 
-  // إعادة تعيين النموذج عند الإغلاق
+  // تعبئة النموذج عند التعديل
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen && patientToEdit) {
+      const birthDate = patientToEdit.birthDate 
+        ? (typeof patientToEdit.birthDate === 'string' 
+            ? patientToEdit.birthDate.split('T')[0] 
+            : new Date(patientToEdit.birthDate).toISOString().split('T')[0])
+        : '';
+
+      setFormData({
+        firstName: patientToEdit.firstName || '',
+        lastName: patientToEdit.lastName || '',
+        birthDate: birthDate,
+        bloodType: patientToEdit.bloodType || '',
+        phone: patientToEdit.phone || '',
+        phone2: patientToEdit.phone2 || '',
+        address: patientToEdit.address || '',
+        maritalStatus: patientToEdit.maritalStatus || '',
+        isPregnant: false, // لا نستخدمه بعد الآن
+        emergencyContactName: patientToEdit.emergencyContactName || '',
+        emergencyContactPhone: patientToEdit.emergencyContactPhone || '',
+        emergencyContactRelation: patientToEdit.emergencyContactRelation || '',
+        notes: patientToEdit.notes || '',
+      });
+    } else if (!isOpen) {
+      // إعادة تعيين النموذج عند الإغلاق
       setFormData({
         firstName: '',
         lastName: '',
@@ -57,7 +96,7 @@ export function NewPatientModal({
         notes: '',
       });
     }
-  }, [isOpen]);
+  }, [isOpen, patientToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,8 +107,14 @@ export function NewPatientModal({
 
     setLoading(true);
     try {
-      const response = await apiFetch('/api/patients', {
-        method: 'POST',
+      const isEditMode = !!patientToEdit;
+      const url = isEditMode 
+        ? `/api/patients/${patientToEdit.id}`
+        : '/api/patients';
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      const response = await apiFetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: formData.firstName,
@@ -85,7 +130,7 @@ export function NewPatientModal({
           emergencyContactPhone: formData.emergencyContactPhone || null,
           emergencyContactRelation: formData.emergencyContactRelation || null,
           notes: formData.notes || null,
-          isActive: true,
+          ...(isEditMode ? {} : { isActive: true }),
         }),
       });
 
@@ -96,11 +141,11 @@ export function NewPatientModal({
           onSuccess();
         }
       } else {
-        alert(result.error || 'حدث خطأ أثناء إضافة المريض');
+        alert(result.error || (isEditMode ? 'حدث خطأ أثناء تعديل المريضة' : 'حدث خطأ أثناء إضافة المريضة'));
       }
     } catch (error: any) {
-      console.error('Error creating patient:', error);
-      alert('حدث خطأ أثناء إضافة المريض');
+      console.error('Error saving patient:', error);
+      alert(patientToEdit ? 'حدث خطأ أثناء تعديل المريضة' : 'حدث خطأ أثناء إضافة المريضة');
     } finally {
       setLoading(false);
     }
@@ -127,7 +172,9 @@ export function NewPatientModal({
             <div className='p-2 bg-white/20 rounded-lg'>
               <User size={24} className='text-white' />
             </div>
-            <h2 className='text-2xl font-bold text-white'>إضافة مريض جديد</h2>
+            <h2 className='text-2xl font-bold text-white'>
+              {patientToEdit ? 'تعديل بيانات المريضة' : 'إضافة مريضة جديدة'}
+            </h2>
           </div>
 
           <button
@@ -383,7 +430,7 @@ export function NewPatientModal({
               disabled={loading}
               className='flex-1 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             >
-              {loading ? 'جاري الحفظ...' : 'حفظ المريض'}
+              {loading ? 'جاري الحفظ...' : (patientToEdit ? 'حفظ التعديلات' : 'إضافة مريضة')}
             </button>
           </div>
         </form>

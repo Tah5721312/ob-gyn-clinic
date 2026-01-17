@@ -35,9 +35,6 @@ model Patient {
   isActive         Boolean  @default(true)
   notes            String?  @db.Text
 
-  // التأمين النشط
-  insuranceId Int?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -47,40 +44,12 @@ model Patient {
   medicalHistory   MedicalHistory?
   pregnancyRecords PregnancyRecord[]
   diagnoses        Diagnosis[]
-  insurances       Insurance[]       @relation("PatientInsurances")
-  insurance        Insurance?        @relation("ActiveInsurance", fields: [insuranceId], references: [id])
   invoices         Invoice[]
 
   @@index([phone])
   @@index([firstName, lastName])
   @@index([isActive])
-  @@index([insuranceId])
   @@map("patients")
-}
-
-// ====================================
-// 1️⃣1️⃣ التأمين (Insurance)
-// ====================================
-
-model Insurance {
-  id               Int      @id @default(autoincrement())
-  patientId        Int
-  insuranceCompany String   @db.VarChar(100)
-  policyNumber     String   @db.VarChar(100)
-  expiryDate       DateTime @db.Date
-  coverageDetails  String?  @db.Text
-  isActive         Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  patient        Patient   @relation("PatientInsurances", fields: [patientId], references: [id], onDelete: Cascade)
-  activePatients Patient[] @relation("ActiveInsurance")
-
-  @@index([patientId])
-  @@index([isActive])
-  @@index([expiryDate])
-  @@map("insurances")
 }
 
 // ====================================
@@ -187,7 +156,6 @@ model Appointment {
   appointmentTime DateTime @db.Time
   status          String   @default("BOOKED") @db.VarChar(20) // BOOKED, CANCELLED, COMPLETED
   durationMinutes Int      @default(30)
-  visitReason     String?  @db.VarChar(100) // سبب الزيارة: كشف، متابعة حمل، سونار، إلخ
   receptionNotes  String?  @db.Text // ملاحظات للاستقبال: "تدخل بسرعة"، "مريضة حساسة"، إلخ
   notes           String?  @db.Text
 
@@ -529,9 +497,7 @@ model Invoice {
   paymentStatus   String  @default("UNPAID") @db.VarChar(20) // UNPAID, PARTIAL, PAID
 
   // معلومات إضافية
-  notes           String?  @db.Text
-  insuranceClaim  Boolean  @default(false) // هل فيه مطالبة تأمين؟
-  insuranceAmount Decimal? @db.Decimal(10, 2) // مبلغ التأمين
+  notes String? @db.Text
 
   isCancelled  Boolean   @default(false)
   cancelledAt  DateTime?
@@ -606,7 +572,7 @@ model Payment {
   receivedById Int? // المستخدم اللي استلم الفلوس
   notes        String? @db.Text
 
-  isRefunded   Boolean   @default(false)  //مسترجع للدفع
+  isRefunded   Boolean   @default(false) //مسترجع للدفع
   refundedAt   DateTime?
   refundReason String?   @db.Text
 

@@ -31,7 +31,6 @@ interface Invoice {
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: string;
-  insuranceAmount: number | null;
   notes: string | null;
   items: Array<{
     id: number;
@@ -94,7 +93,6 @@ export default function InvoiceDetailClient() {
           totalAmount: Number(invoiceData.totalAmount || 0),
           paidAmount: Number(invoiceData.paidAmount || 0),
           remainingAmount: Number(invoiceData.remainingAmount || 0),
-          insuranceAmount: invoiceData.insuranceAmount ? Number(invoiceData.insuranceAmount) : null,
           items: invoiceData.items?.map((item: any) => ({
             ...item,
             unitPrice: Number(item.unitPrice || 0),
@@ -417,12 +415,6 @@ export default function InvoiceDetailClient() {
                   <div className="flex items-center justify-between text-red-700">
                     <span>الخصم</span>
                     <span className="font-semibold">-{formatCurrency(invoice.discount)}</span>
-                  </div>
-                )}
-                {invoice.insuranceAmount && invoice.insuranceAmount > 0 && (
-                  <div className="flex items-center justify-between text-blue-700">
-                    <span>التأمين</span>
-                    <span className="font-semibold">{formatCurrency(invoice.insuranceAmount)}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-200 pt-3">

@@ -6,7 +6,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { PatientFilters, PatientListItem } from "./types";
-import { calculateAge, buildFullName, hasActiveInsurance, hasActivePregnancy } from "./utils";
+import { calculateAge, buildFullName } from "./utils";
 
 /**
  * بناء where clause للبحث والفلترة
@@ -28,24 +28,6 @@ function buildWhereClause(filters: PatientFilters) {
     where.isActive = filters.isActive;
   }
 
-  // Filter: hasInsurance
-  if (filters.hasInsurance === true) {
-    where.insurances = {
-      some: {
-        isActive: true,
-      },
-    };
-  }
-
-  // Filter: isPregnant (isActive = true)
-  if (filters.isPregnant === true) {
-    where.pregnancyRecords = {
-      some: {
-        isActive: true,
-      },
-    };
-  }
-
   return where;
 }
 
@@ -64,7 +46,7 @@ export async function getPatientsList(
   // جلب البيانات مع العلاقات المطلوبة
   const patients = await prisma.patient.findMany({
     where,
-    select: {
+      select: {
       id: true,
       firstName: true,
       lastName: true,
@@ -72,24 +54,6 @@ export async function getPatientsList(
       registrationDate: true,
       phone: true,
       isActive: true,
-      insurances: {
-        where: {
-          isActive: true,
-        },
-        select: {
-          isActive: true,
-        },
-        take: 1,
-      },
-      pregnancyRecords: {
-        where: {
-          isActive: true,
-        },
-        select: {
-          isActive: true,
-        },
-        take: 1,
-      },
     },
     orderBy: {
       registrationDate: "desc",
@@ -101,8 +65,6 @@ export async function getPatientsList(
   // تحويل البيانات إلى PatientListItem
   return patients.map((patient) => {
     const age = calculateAge(patient.birthDate);
-    const hasInsurance = hasActiveInsurance(patient.insurances);
-    const isPregnant = hasActivePregnancy(patient.pregnancyRecords);
 
     return {
       id: patient.id,
@@ -112,8 +74,6 @@ export async function getPatientsList(
       phone: patient.phone,
       age,
       registrationDate: patient.registrationDate,
-      hasInsurance,
-      isPregnant,
       isActive: patient.isActive,
     };
   });
@@ -140,12 +100,6 @@ export async function getPatientById(
   return await prisma.patient.findUnique({
     where: { id: patientId },
     include: {
-      insurances: {
-        where: { isActive: true },
-        orderBy: { expiryDate: "desc" },
-        take: 1,
-      },
-          insurance: true,
       pregnancyRecords: {
         where: { isActive: true },
         orderBy: { lmpDate: "desc" },

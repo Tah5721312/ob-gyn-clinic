@@ -113,12 +113,6 @@ export function VisitDetail({ visit }: VisitDetailProps) {
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">نوع الموعد</p>
-              <p className="text-lg font-medium text-gray-900">
-                {visit.appointment.appointmentType}
-              </p>
-            </div>
-            <div>
               <p className="text-sm text-gray-600">مدة الزيارة</p>
               <p className="text-lg font-medium text-gray-900">
                 {visit.visitStartTime && visit.visitEndTime

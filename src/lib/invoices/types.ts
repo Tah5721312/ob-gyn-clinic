@@ -12,14 +12,10 @@ export interface InvoiceListItem {
   discountAmount: number;
   taxAmount: number;
   totalAmount: number;
-  insuranceCoverage: number;
-  patientResponsibility: number;
   netAmount: number;
   paidAmount: number;
   remainingAmount: number;
   paymentStatus: string;
-  insuranceId: number | null;
-  insuranceName: string | null;
   itemsCount: number;
 }
 

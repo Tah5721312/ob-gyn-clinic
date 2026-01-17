@@ -58,13 +58,6 @@ export async function getInvoicesList(
           id: true,
           firstName: true,
           lastName: true,
-          insuranceId: true,
-          insurance: {
-            select: {
-              id: true,
-              insuranceCompany: true,
-            },
-          },
         },
       },
     },
@@ -99,15 +92,10 @@ export async function getInvoicesList(
     discountAmount: Number(invoice.discount),
     taxAmount: 0, // لا يوجد في schema
     totalAmount: Number(invoice.totalAmount),
-    insuranceCoverage: Number(invoice.insuranceAmount || 0),
-    patientResponsibility:
-      Number(invoice.totalAmount) - Number(invoice.insuranceAmount || 0),
     netAmount: Number(invoice.totalAmount),
     paidAmount: Number(invoice.paidAmount),
     remainingAmount: Number(invoice.remainingAmount),
     paymentStatus: invoice.paymentStatus,
-    insuranceId: invoice.patient.insuranceId,
-    insuranceName: invoice.patient.insurance?.insuranceCompany || null,
     itemsCount: itemsCountMap.get(invoice.id) || 0,
   }));
 }
@@ -124,11 +112,7 @@ export async function getInvoiceById(prisma: PrismaClient, invoiceId: number) {
   return await prisma.invoice.findUnique({
     where: { id: invoiceId },
     include: {
-      patient: {
-        include: {
-          insurance: true,
-        },
-      },
+      patient: true,
       doctor: {
         select: {
           id: true,

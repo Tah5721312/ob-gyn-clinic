@@ -22,14 +22,6 @@ export async function GET(request: NextRequest) {
         searchParams.get("isActive") !== null && searchParams.get("isActive") !== undefined
           ? searchParams.get("isActive") === "true"
           : undefined,
-      hasInsurance:
-        searchParams.get("hasInsurance") !== null && searchParams.get("hasInsurance") !== undefined
-          ? searchParams.get("hasInsurance") === "true"
-          : undefined,
-      isPregnant:
-        searchParams.get("isPregnant") !== null && searchParams.get("isPregnant") !== undefined
-          ? searchParams.get("isPregnant") === "true"
-          : undefined,
     };
 
     const patients = await getPatientsList(prisma, filters);

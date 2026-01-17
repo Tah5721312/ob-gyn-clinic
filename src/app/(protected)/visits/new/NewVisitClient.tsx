@@ -17,7 +17,6 @@ interface Appointment {
   id: number;
   appointmentDate: Date;
   appointmentTime: Date;
-  appointmentType: string;
 }
 
 export default function NewVisitClient() {

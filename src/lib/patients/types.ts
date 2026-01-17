@@ -12,16 +12,12 @@ export interface PatientListItem {
   phone: string;
   age: number;
   registrationDate?: Date | string;
-  hasInsurance: boolean;
-  isPregnant: boolean;
   isActive: boolean;
 }
 
 export interface PatientFilters {
   search?: string;
   isActive?: boolean | null;
-  hasInsurance?: boolean | null;
-  isPregnant?: boolean | null;
 }
 
 export interface PatientListResponse {

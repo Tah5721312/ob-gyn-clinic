@@ -2,7 +2,7 @@
 import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Phone, MapPin, Shield, Baby, MoreVertical, Eye, Calendar, Stethoscope, Plus, Users, Heart } from "lucide-react";
+import { Search, Phone, Eye, Calendar, Stethoscope, Plus, Users, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PatientListItem, PatientListResponse } from "@/lib/patients";
@@ -16,13 +16,23 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
   const [patients, setPatients] = useState<PatientListItem[]>(initialPatients);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState({
-    isActive: "true",
-    hasInsurance: "",
-    isPregnant: "",
-  });
   const [showActions, setShowActions] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPatient, setEditingPatient] = useState<{
+    id: number;
+    firstName: string;
+    lastName: string;
+    birthDate: string | Date;
+    bloodType?: string | null;
+    phone: string;
+    phone2?: string | null;
+    address?: string | null;
+    maritalStatus?: string | null;
+    emergencyContactName?: string | null;
+    emergencyContactPhone?: string | null;
+    emergencyContactRelation?: string | null;
+    notes?: string | null;
+  } | null>(null);
   const router = useRouter();
   const { data: session } = useSession();
   const isDoctor = session?.user?.role === "DOCTOR";
@@ -52,9 +62,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
       try {
         const params = new URLSearchParams();
         if (search) params.append("search", search);
-        if (filters.isActive) params.append("isActive", filters.isActive);
-        if (filters.hasInsurance) params.append("hasInsurance", filters.hasInsurance);
-        if (filters.isPregnant) params.append("isPregnant", filters.isPregnant);
 
         const response = await apiFetch(`/api/patients?${params.toString()}`);
         const result: PatientListResponse = await response.json();
@@ -74,24 +81,75 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
     }, 300);
 
     return () => clearTimeout(debounceTimer);
-  }, [search, filters]);
+  }, [search]);
 
   const handleViewProfile = (patientId: number) => {
     router.push(`/patients/${patientId}`);
   };
 
   const handleNewAppointment = (patientId: number) => {
-    router.push(`/appointments/new?patientId=${patientId}`);
+    router.push(`/appointments?patientId=${patientId}`);
   };
 
   const handleNewVisit = (patientId: number) => {
     router.push(`/visits/new?patientId=${patientId}`);
   };
 
+  const handleEdit = async (patient: PatientListItem) => {
+    try {
+      // جلب بيانات المريض الكاملة
+      const response = await apiFetch(`/api/patients/${patient.id}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        setEditingPatient(result.data);
+        setIsModalOpen(true);
+      } else {
+        alert('حدث خطأ أثناء جلب بيانات المريضة');
+      }
+    } catch (error) {
+      console.error('Error fetching patient:', error);
+      alert('حدث خطأ أثناء جلب بيانات المريضة');
+    }
+  };
+
+  const handleDelete = async (patient: PatientListItem) => {
+    if (!confirm(`هل أنت متأكد من حذف المريضة ${patient.fullName}؟\n\nهذا الإجراء لا يمكن التراجع عنه.`)) {
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`/api/patients/${patient.id}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // إعادة تحميل قائمة المرضى
+        const params = new URLSearchParams();
+        if (search) params.append("search", search);
+
+        apiFetch(`/api/patients?${params.toString()}`)
+          .then(res => res.json())
+          .then((result: PatientListResponse) => {
+            if (result.success) {
+              setPatients(result.data);
+            }
+          });
+      } else {
+        alert(result.error || 'حدث خطأ أثناء حذف المريضة');
+      }
+    } catch (error) {
+      console.error('Error deleting patient:', error);
+      alert('حدث خطأ أثناء حذف المريضة');
+    }
+  };
+
   return (
     <div className="space-y-6" dir="rtl">
       {/* Header with Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -99,30 +157,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
               <p className="text-4xl font-bold mt-1">{patients.length}</p>
             </div>
             <Users className="w-12 h-12 opacity-30" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-pink-500 to-pink-600 text-white rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-pink-100 text-sm">الحوامل</p>
-              <p className="text-4xl font-bold mt-1">
-                {patients.filter(p => p.isPregnant).length}
-              </p>
-            </div>
-            <Baby className="w-12 h-12 opacity-30" />
-          </div>
-        </div>
-
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-green-100 text-sm">لديهن تأمين</p>
-              <p className="text-4xl font-bold mt-1">
-                {patients.filter(p => p.hasInsurance).length}
-              </p>
-            </div>
-            <Shield className="w-12 h-12 opacity-30" />
           </div>
         </div>
       </div>
@@ -157,39 +191,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
             className="w-full pr-10 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select
-            value={filters.isActive}
-            onChange={(e) => setFilters({ ...filters, isActive: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-right"
-          >
-            <option value="">جميع الحالات</option>
-            <option value="true">نشط</option>
-            <option value="false">غير نشط</option>
-          </select>
-
-          <select
-            value={filters.hasInsurance}
-            onChange={(e) => setFilters({ ...filters, hasInsurance: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-right"
-          >
-            <option value="">التأمين (الكل)</option>
-            <option value="true">لديها تأمين</option>
-            <option value="false">بدون تأمين</option>
-          </select>
-
-          <select
-            value={filters.isPregnant}
-            onChange={(e) => setFilters({ ...filters, isPregnant: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-right"
-          >
-            <option value="">الحالة (الكل)</option>
-            <option value="true">حامل</option>
-            <option value="false">غير حامل</option>
-          </select>
-        </div>
       </div>
 
       {/* Table */}
@@ -210,8 +211,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الهاتف</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">العمر</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">تاريخ التسجيل</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">الحمل</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">التأمين</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الحالة</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الإجراءات</th>
                 </tr>
@@ -244,28 +243,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
                         ? new Date(patient.registrationDate).toLocaleDateString('ar-EG')
                         : '—'
                       }
-                    </td>
-                    <td className="px-6 py-4">
-                      {patient.isPregnant ? (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-pink-100 text-pink-800">
-                          <Baby className="w-4 h-4" />
-                          حامل
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                          غير حامل
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      {patient.hasInsurance ? (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-                          <Shield className="w-4 h-4" />
-                          نعم
-                        </span>
-                      ) : (
-                        <span className="text-gray-400 text-sm">—</span>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       {patient.isActive ? (
@@ -303,7 +280,20 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
                             <Stethoscope className="w-5 h-5" />
                           </button>
                         )}
-                     
+                        <button
+                          onClick={() => handleEdit(patient)}
+                          className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
+                          title="تعديل"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(patient)}
+                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          title="حذف"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -314,17 +304,18 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
         )}
       </div>
 
-      {/* Modal إضافة مريضة جديدة */}
+      {/* Modal إضافة/تعديل مريضة */}
       <NewPatientModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPatient(null);
+        }}
+        patientToEdit={editingPatient}
         onSuccess={() => {
           // إعادة تحميل المرضى
           const params = new URLSearchParams();
           if (search) params.append("search", search);
-          if (filters.isActive) params.append("isActive", filters.isActive);
-          if (filters.hasInsurance) params.append("hasInsurance", filters.hasInsurance);
-          if (filters.isPregnant) params.append("isPregnant", filters.isPregnant);
 
           apiFetch(`/api/patients?${params.toString()}`)
             .then(res => res.json())
@@ -333,6 +324,7 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
                 setPatients(result.data);
               }
             });
+          setEditingPatient(null);
         }}
       />
     </div>

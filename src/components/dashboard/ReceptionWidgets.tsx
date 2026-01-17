@@ -167,7 +167,7 @@ export function ReceptionWidgets({ session }: { session: any }) {
                   key={appointment.id}
                   time={time}
                   patientName={appointment.patientName}
-                  reason={appointment.appointmentType}
+                  reason=""
                   status={status}
                   showActions
                 />

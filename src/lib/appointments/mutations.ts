@@ -8,8 +8,6 @@ export interface CreateAppointmentData {
   doctorId: number;
   appointmentDate: Date;
   appointmentTime: Date;
-  appointmentType?: string; // سيتم تحويله إلى visitReason
-  visitReason?: string;
   status?: string;
   durationMinutes?: number;
   notes?: string;
@@ -24,8 +22,6 @@ export interface CreateAppointmentData {
 export interface UpdateAppointmentData {
   appointmentDate?: Date;
   appointmentTime?: Date;
-  appointmentType?: string; // سيتم تحويله إلى visitReason
-  visitReason?: string;
   status?: string;
   durationMinutes?: number;
   cancellationReason?: string;
@@ -40,15 +36,12 @@ export async function createAppointment(
   prisma: PrismaClient,
   data: CreateAppointmentData
 ) {
-  // تحويل appointmentType إلى visitReason إذا كان موجوداً
-  const { appointmentType, totalAmount, paidAmount, paymentMethod, ...restData } = data;
-  const visitReason = data.visitReason || appointmentType;
+  const { totalAmount, paidAmount, paymentMethod, ...restData } = data;
 
   const appointment = await prisma.appointment.create({
     data: {
       status: data.status || "BOOKED",
       durationMinutes: data.durationMinutes || 30,
-      visitReason: visitReason || null,
       ...restData,
     },
   });
@@ -88,17 +81,9 @@ export async function updateAppointment(
   appointmentId: number,
   data: UpdateAppointmentData
 ) {
-  // تحويل appointmentType إلى visitReason إذا كان موجوداً
-  const { appointmentType, ...restData } = data;
-  const updateData: any = { ...restData };
-
-  if (appointmentType !== undefined) {
-    updateData.visitReason = appointmentType;
-  }
-
   return await prisma.appointment.update({
     where: { id: appointmentId },
-    data: updateData,
+    data,
   });
 }
 

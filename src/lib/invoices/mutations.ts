@@ -18,8 +18,6 @@ export interface CreateInvoiceData {
   subtotalAmount?: number;
   discountAmount?: number;
   totalAmount?: number;
-  insuranceAmount?: number;
-  insuranceCoverage?: number; // alias for insuranceAmount
   notes?: string;
 }
 
@@ -33,12 +31,8 @@ export interface UpdateInvoiceData {
   discountAmount?: number;
   taxAmount?: number;
   totalAmount?: number;
-  insuranceAmount?: number;
-  insuranceCoverage?: number;
-  patientResponsibility?: number;
   netAmount?: number;
   // paymentStatus, paidAmount, remainingAmount يتم حسابها تلقائياً
-  insuranceId?: number;
   notes?: string;
 }
 
@@ -65,8 +59,7 @@ export async function createInvoice(
   const subtotal = data.subtotalAmount || 0;
   const discount = data.discountAmount || 0;
   const totalAmount = data.totalAmount || (subtotal - discount);
-  const insuranceAmount = data.insuranceCoverage || data.insuranceAmount || null;
-  const remainingAmount = totalAmount - (insuranceAmount || 0);
+  const remainingAmount = totalAmount;
 
   return await prisma.invoice.create({
     data: {
@@ -83,8 +76,6 @@ export async function createInvoice(
       paidAmount: 0,
       remainingAmount: remainingAmount,
       paymentStatus: "UNPAID",
-      insuranceClaim: insuranceAmount ? true : false,
-      insuranceAmount: insuranceAmount,
       notes: data.notes || null,
     },
   });

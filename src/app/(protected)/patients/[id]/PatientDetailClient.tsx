@@ -35,12 +35,6 @@ interface Patient {
   registrationDate: Date | string;
   isActive: boolean;
   notes: string | null;
-  insurance?: {
-    id: number;
-    insuranceCompany: string;
-    policyNumber: string;
-    expiryDate: Date | string;
-  } | null;
   pregnancyRecords?: Array<{
     id: number;
     lmpDate: Date | string;
@@ -57,7 +51,6 @@ interface Patient {
     id: number;
     appointmentDate: Date | string;
     appointmentTime: Date | string;
-    appointmentType: string;
     status: string;
     doctor: {
       id: number;
@@ -457,7 +450,7 @@ export default function PatientDetailClient() {
                           {formatDateTime(appointment.appointmentDate)}
                         </p>
                         <p className='text-sm text-gray-600 mt-1'>
-                          {appointment.appointmentType} - {appointment.status}
+                          {appointment.status}
                         </p>
                         <p className='text-xs text-gray-500 mt-1'>
                           د. {appointment.doctor.firstName}{' '}
@@ -499,35 +492,6 @@ export default function PatientDetailClient() {
 
         {/* Right Column - Sidebar */}
         <div className='space-y-6'>
-          {/* Insurance */}
-          {patient.insurance && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-                <Shield className='w-5 h-5' />
-                التأمين
-              </h2>
-              <div className='space-y-2'>
-                <div>
-                  <p className='text-sm text-gray-600'>شركة التأمين</p>
-                  <p className='font-medium text-gray-900'>
-                    {patient.insurance.insuranceCompany}
-                  </p>
-                </div>
-                <div>
-                  <p className='text-sm text-gray-600'>رقم البوليصة</p>
-                  <p className='font-medium text-gray-900'>
-                    {patient.insurance.policyNumber}
-                  </p>
-                </div>
-                <div>
-                  <p className='text-sm text-gray-600'>تاريخ الانتهاء</p>
-                  <p className='font-medium text-gray-900'>
-                    {formatDate(patient.insurance.expiryDate)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Pregnancy Records */}
           {patient.pregnancyRecords && patient.pregnancyRecords.length > 0 && (

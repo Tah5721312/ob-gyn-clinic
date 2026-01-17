@@ -3,11 +3,11 @@ import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
 import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft, User as UserIcon, Stethoscope } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AppointmentListItem } from "@/lib/appointments/types";
 import { NewAppointmentModal } from "./NewAppointmentModal";
-import { AppointmentStatus, AppointmentStatusLabels, InvoiceItemType, InvoiceItemTypeLabels } from "@/lib/enumdb";
+import { AppointmentStatus, AppointmentStatusLabels } from "@/lib/enumdb";
 
 interface AppointmentListProps {
   initialAppointments?: AppointmentListItem[];
@@ -21,8 +21,29 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
   const [statusFilter, setStatusFilter] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<AppointmentListItem | null>(null);
+  const [initialPatientId, setInitialPatientId] = useState<number | undefined>(undefined);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
+
+  // فحص patientId من URL وفتح modal تلقائياً
+  useEffect(() => {
+    const patientIdParam = searchParams.get('patientId');
+    if (patientIdParam) {
+      const patientId = parseInt(patientIdParam);
+      if (!isNaN(patientId)) {
+        setInitialPatientId(patientId);
+        setIsModalOpen(true);
+        // إزالة patientId من URL بعد فتح modal
+        const newSearchParams = new URLSearchParams(searchParams.toString());
+        newSearchParams.delete('patientId');
+        const newUrl = newSearchParams.toString() 
+          ? `${window.location.pathname}?${newSearchParams.toString()}`
+          : window.location.pathname;
+        router.replace(newUrl);
+      }
+    }
+  }, [searchParams, router]);
 
   // جلب المواعيد
   useEffect(() => {
@@ -231,7 +252,6 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">التاريخ</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الوقت</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الطبيب</th>
-                  <th className="px-6 py-4 text-sm font-semibold text-gray-700">نوع الموعد</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">الحالة</th>
                   <th className="px-6 py-4 text-sm font-semibold text-gray-700">إجراءات</th>
                 </tr>
@@ -262,13 +282,6 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">
                       {appointment.doctorName}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <span className="bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-medium">
-                        {appointment.appointmentType && Object.values(InvoiceItemType).includes(appointment.appointmentType as InvoiceItemType)
-                          ? InvoiceItemTypeLabels[appointment.appointmentType as InvoiceItemType]
-                          : appointment.appointmentType || "غير محدد"}
-                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
@@ -339,14 +352,15 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
         onClose={() => {
           setIsModalOpen(false);
           setEditingAppointment(null);
+          setInitialPatientId(undefined);
         }}
         appointmentToEdit={editingAppointment}
+        initialPatientId={initialPatientId}
         onSuccess={() => {
           // إعادة تحميل المواعيد
           const params = new URLSearchParams();
           if (search) params.append("search", search);
           if (selectedDate) params.append("appointmentDate", selectedDate);
-          if (statusFilter) params.append("status", statusFilter);
           if (session?.user?.role === "DOCTOR" && session?.user?.doctorId) {
             params.append("doctorId", session.user.doctorId.toString());
           }

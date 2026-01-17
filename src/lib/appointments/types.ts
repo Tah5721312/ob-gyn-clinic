@@ -8,7 +8,6 @@ export interface AppointmentListItem {
   doctorName: string;
   appointmentDate: Date;
   appointmentTime: Date;
-  appointmentType: string; // visitReason من قاعدة البيانات
   status: string;
   priority: string; // محفوظ للتوافق مع الكود القديم، لكن دائماً فارغ
   durationMinutes: number;
@@ -21,7 +20,6 @@ export interface AppointmentFilters {
   doctorId?: number;
   appointmentDate?: Date;
   status?: string;
-  appointmentType?: string; // سيتم تحويله إلى visitReason في queries
   search?: string;
 }
 
