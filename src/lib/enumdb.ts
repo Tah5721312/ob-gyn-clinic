@@ -273,8 +273,9 @@ export const AppointmentStatusLabels: Record<AppointmentStatus, string> = {
 
 // ====================================
 export enum emergencyContactRelation {
-  MOTHER = 'أم',
+  Hasband = 'زوج',
   FATHER = 'أب',
+  MOTHER = 'أم',
   BROTHER = 'أخ',
   SISTER = 'أخت',
   OTHER = 'أخرى',
@@ -284,8 +285,9 @@ export const emergencyContactRelationLabels: Record<
   emergencyContactRelation,
   string
 > = {
-  [emergencyContactRelation.MOTHER]: 'أم',
+  [emergencyContactRelation.Hasband]: 'زوج',
   [emergencyContactRelation.FATHER]: 'أب',
+  [emergencyContactRelation.MOTHER]: 'أم',
   [emergencyContactRelation.BROTHER]: 'أخ',
   [emergencyContactRelation.SISTER]: 'أخت',
   [emergencyContactRelation.OTHER]: 'أخرى',
