@@ -12,14 +12,31 @@ export async function apiFetch(
 ): Promise<Response> {
   // إذا كان الرابط يبدأ بـ http أو https، استخدمه كما هو
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    return fetch(url, options);
+    return fetch(url, {
+      ...options,
+      credentials: 'include', // إرسال ملفات تعريف الارتباط (cookies)
+    });
   }
 
-  // إذا كان الرابط نسبي (يبدأ بـ /)، أضف DOMAIN قبله
+  // في المتصفح (client-side): استخدم الروابط النسبية مباشرة
+  // هذا يعمل بشكل أفضل مع Next.js و Vercel
+  if (typeof window !== 'undefined') {
+    // تأكد من أن الرابط يبدأ بـ /
+    const relativeUrl = url.startsWith('/') ? url : `/${url}`;
+    return fetch(relativeUrl, {
+      ...options,
+      credentials: 'include', // إرسال ملفات تعريف الارتباط (cookies) للجلسة
+    });
+  }
+
+  // في الخادم (server-side): استخدم DOMAIN للروابط المطلقة
   const fullUrl = url.startsWith('/') 
     ? `${DOMAIN}${url}` 
     : `${DOMAIN}/${url}`;
 
-  return fetch(fullUrl, options);
+  return fetch(fullUrl, {
+    ...options,
+    credentials: 'include',
+  });
 }
 
