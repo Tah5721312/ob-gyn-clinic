@@ -10,7 +10,6 @@ export interface CreatePatientData {
   phone: string;
   phone2?: string;
   address?: string;
-  maritalStatus?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;
@@ -26,7 +25,6 @@ export interface UpdatePatientData {
   phone?: string;
   phone2?: string;
   address?: string;
-  maritalStatus?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelation?: string;

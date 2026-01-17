@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { X, User } from 'lucide-react';
 import {
   BloodType,
-  MaritalStatus,
   emergencyContactRelation,
   emergencyContactRelationLabels,
 } from '@/lib/enumdb';
@@ -23,7 +22,6 @@ interface NewPatientModalProps {
     phone: string;
     phone2?: string | null;
     address?: string | null;
-    maritalStatus?: string | null;
     emergencyContactName?: string | null;
     emergencyContactPhone?: string | null;
     emergencyContactRelation?: string | null;
@@ -46,7 +44,6 @@ export function NewPatientModal({
     phone: '',
     phone2: '',
     address: '',
-    maritalStatus: '',
     isPregnant: false,
     emergencyContactName: '',
     emergencyContactPhone: '',
@@ -71,7 +68,6 @@ export function NewPatientModal({
         phone: patientToEdit.phone || '',
         phone2: patientToEdit.phone2 || '',
         address: patientToEdit.address || '',
-        maritalStatus: patientToEdit.maritalStatus || '',
         isPregnant: false, // لا نستخدمه بعد الآن
         emergencyContactName: patientToEdit.emergencyContactName || '',
         emergencyContactPhone: patientToEdit.emergencyContactPhone || '',
@@ -88,7 +84,6 @@ export function NewPatientModal({
         phone: '',
         phone2: '',
         address: '',
-        maritalStatus: '',
         isPregnant: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
@@ -124,7 +119,6 @@ export function NewPatientModal({
           phone: formData.phone,
           phone2: formData.phone2 || null,
           address: formData.address || null,
-          maritalStatus: formData.maritalStatus || null,
           isPregnant: formData.isPregnant,
           emergencyContactName: formData.emergencyContactName || null,
           emergencyContactPhone: formData.emergencyContactPhone || null,
@@ -253,25 +247,6 @@ export function NewPatientModal({
               </select>
             </div>
 
-            {/* <div>
-              <label className='block text-sm font-medium text-gray-700 mb-2'>
-                الحالة الاجتماعية
-              </label>
-              <select
-                value={formData.maritalStatus}
-                onChange={(e) =>
-                  setFormData({ ...formData, maritalStatus: e.target.value })
-                }
-                className='w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500'
-              >
-                <option value=''>اختر الحالة</option>
-                {Object.values(MaritalStatus).map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div> */}
 
             {/* <div>
               <label className='block text-sm font-medium text-gray-700 mb-2'>

@@ -28,7 +28,6 @@ interface Patient {
   phone: string;
   phone2: string | null;
   address: string | null;
-  maritalStatus: string | null;
   emergencyContactName: string | null;
   emergencyContactPhone: string | null;
   emergencyContactRelation: string | null;
@@ -177,14 +176,25 @@ export default function PatientDetailClient() {
 
   if (loading) {
     return (
-      <div className='text-center py-12 text-gray-500'>جاري التحميل...</div>
+      <div className='flex items-center justify-center py-20'>
+        <div className='text-center'>
+          <div className='inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mb-4'></div>
+          <p className='text-gray-600 text-lg'>جاري التحميل...</p>
+        </div>
+      </div>
     );
   }
 
   if (!patient) {
     return (
-      <div className='text-center py-12'>
-        <p className='text-gray-600'>المريض غير موجود</p>
+      <div className='flex items-center justify-center py-20'>
+        <div className='text-center bg-white rounded-xl shadow-lg p-8'>
+          <div className='bg-red-100 p-4 rounded-full inline-block mb-4'>
+            <User className='w-12 h-12 text-red-600' />
+          </div>
+          <p className='text-gray-900 text-xl font-bold mb-2'>المريض غير موجود</p>
+          <p className='text-gray-600'>لم يتم العثور على بيانات المريض المطلوب</p>
+        </div>
       </div>
     );
   }
@@ -192,36 +202,45 @@ export default function PatientDetailClient() {
   return (
     <div className='space-y-6'>
       {/* Header */}
-      <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-3xl font-bold text-gray-900'>
-            {patient.firstName} {patient.lastName}
-          </h1>
-        </div>
-        <div className='flex gap-2'>
-          <button
-            onClick={() =>
-              router.push(`/appointments/new?patientId=${patient.id}`)
-            }
-            className='flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-          >
-            <Plus className='w-5 h-5' />
-            موعد جديد
-          </button>
-          <button
-            onClick={() => router.push(`/visits/new?patientId=${patient.id}`)}
-            className='flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors'
-          >
-            <Stethoscope className='w-5 h-5' />
-            زيارة جديدة
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className='flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors'
-          >
-            <Trash2 className='w-5 h-5' />
-            حذف
-          </button>
+      <div className='bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-6 text-white'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-4'>
+            <div className='bg-white/20 backdrop-blur-sm rounded-full p-4'>
+              <User className='w-8 h-8' />
+            </div>
+            <div>
+              <h1 className='text-3xl font-bold'>
+                {patient.firstName} {patient.lastName}
+              </h1>
+              <p className='text-blue-100 mt-1 flex items-center gap-2'>
+                <Calendar className='w-4 h-4' />
+                {calculateAge(patient.birthDate)} سنة
+                {patient.bloodType && (
+                  <>
+                    <span className='mx-2'>•</span>
+                    <Shield className='w-4 h-4' />
+                    فصيلة الدم: {patient.bloodType}
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className='flex gap-2'>
+            <button
+              onClick={() => router.push(`/patients/${patient.id}/edit`)}
+              className='flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors'
+            >
+              <Edit className='w-5 h-5' />
+              تعديل
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className='flex items-center gap-2 px-4 py-2 bg-red-500/80 backdrop-blur-sm text-white rounded-lg hover:bg-red-600 transition-colors'
+            >
+              <Trash2 className='w-5 h-5' />
+              حذف
+            </button>
+          </div>
         </div>
       </div>
 
@@ -229,73 +248,69 @@ export default function PatientDetailClient() {
         {/* Left Column - Main Info */}
         <div className='lg:col-span-2 space-y-6'>
           {/* Personal Information */}
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-              <User className='w-5 h-5' />
+          <div className='bg-white rounded-xl shadow-md p-6 border border-gray-100 hover:shadow-lg transition-shadow'>
+            <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 pb-3 border-b border-gray-200'>
+              <div className='bg-blue-100 p-2 rounded-lg'>
+                <User className='w-5 h-5 text-blue-600' />
+              </div>
               المعلومات الشخصية
             </h2>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              <div>
-                <p className='text-sm text-gray-600'>الاسم الكامل</p>
-                <p className='text-lg font-medium text-gray-900'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+              <div className='bg-gray-50 rounded-lg p-4'>
+                <p className='text-sm text-gray-600 mb-1'>الاسم الكامل</p>
+                <p className='text-lg font-semibold text-gray-900'>
                   {patient.firstName} {patient.lastName}
                 </p>
               </div>
-              <div>
-                <p className='text-sm text-gray-600'>تاريخ الميلاد</p>
-                <p className='text-lg font-medium text-gray-900'>
-                  {formatDate(patient.birthDate)} (
-                  {calculateAge(patient.birthDate)} سنة)
+              <div className='bg-gray-50 rounded-lg p-4'>
+                <p className='text-sm text-gray-600 mb-1'>تاريخ الميلاد</p>
+                <p className='text-lg font-semibold text-gray-900'>
+                  {formatDate(patient.birthDate)}
+                </p>
+                <p className='text-sm text-blue-600 mt-1'>
+                  {calculateAge(patient.birthDate)} سنة
                 </p>
               </div>
-              <div>
-                <p className='text-sm text-gray-600'>فصيلة الدم</p>
-                <p className='text-lg font-medium text-gray-900'>
+              <div className='bg-gray-50 rounded-lg p-4'>
+                <p className='text-sm text-gray-600 mb-1'>فصيلة الدم</p>
+                <p className='text-lg font-semibold text-gray-900'>
                   {patient.bloodType || 'غير محدد'}
                 </p>
               </div>
-              <div>
-                <p className='text-sm text-gray-600 flex items-center gap-1'>
+              <div className='bg-gray-50 rounded-lg p-4'>
+                <p className='text-sm text-gray-600 mb-1 flex items-center gap-1'>
                   <Phone className='w-4 h-4' />
                   الهاتف
                 </p>
-                <p className='text-lg font-medium text-gray-900'>
+                <p className='text-lg font-semibold text-gray-900 direction-ltr text-right'>
                   {patient.phone}
                 </p>
               </div>
               {patient.phone2 && (
-                <div>
-                  <p className='text-sm text-gray-600 flex items-center gap-1'>
+                <div className='bg-gray-50 rounded-lg p-4'>
+                  <p className='text-sm text-gray-600 mb-1 flex items-center gap-1'>
                     <Phone className='w-4 h-4' />
                     الهاتف الثاني
                   </p>
-                  <p className='text-lg font-medium text-gray-900'>
+                  <p className='text-lg font-semibold text-gray-900 direction-ltr text-right'>
                     {patient.phone2}
                   </p>
                 </div>
               )}
               {patient.address && (
-                <div className='md:col-span-2'>
-                  <p className='text-sm text-gray-600 flex items-center gap-1'>
+                <div className='md:col-span-2 bg-gray-50 rounded-lg p-4'>
+                  <p className='text-sm text-gray-600 mb-1 flex items-center gap-1'>
                     <MapPin className='w-4 h-4' />
                     العنوان
                   </p>
-                  <p className='text-lg font-medium text-gray-900'>
+                  <p className='text-lg font-semibold text-gray-900'>
                     {patient.address}
                   </p>
                 </div>
               )}
-              {patient.maritalStatus && (
-                <div>
-                  <p className='text-sm text-gray-600'>الحالة الاجتماعية</p>
-                  <p className='text-lg font-medium text-gray-900'>
-                    {patient.maritalStatus}
-                  </p>
-                </div>
-              )}
-              <div>
-                <p className='text-sm text-gray-600'>تاريخ التسجيل</p>
-                <p className='text-lg font-medium text-gray-900'>
+              <div className='bg-gray-50 rounded-lg p-4'>
+                <p className='text-sm text-gray-600 mb-1'>تاريخ التسجيل</p>
+                <p className='text-lg font-semibold text-gray-900'>
                   {formatDate(patient.registrationDate)}
                 </p>
               </div>
@@ -304,31 +319,34 @@ export default function PatientDetailClient() {
 
           {/* Emergency Contact */}
           {(patient.emergencyContactName || patient.emergencyContactPhone) && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4'>
+            <div className='bg-white rounded-xl shadow-md p-6 border border-red-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 pb-3 border-b border-red-200'>
+                <div className='bg-red-100 p-2 rounded-lg'>
+                  <Shield className='w-5 h-5 text-red-600' />
+                </div>
                 جهة الاتصال في الطوارئ
               </h2>
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
                 {patient.emergencyContactName && (
-                  <div>
-                    <p className='text-sm text-gray-600'>الاسم</p>
-                    <p className='text-lg font-medium text-gray-900'>
+                  <div className='bg-red-50 rounded-lg p-4'>
+                    <p className='text-sm text-gray-600 mb-1'>الاسم</p>
+                    <p className='text-lg font-semibold text-gray-900'>
                       {patient.emergencyContactName}
                     </p>
                   </div>
                 )}
                 {patient.emergencyContactPhone && (
-                  <div>
-                    <p className='text-sm text-gray-600'>الهاتف</p>
-                    <p className='text-lg font-medium text-gray-900'>
+                  <div className='bg-red-50 rounded-lg p-4'>
+                    <p className='text-sm text-gray-600 mb-1'>الهاتف</p>
+                    <p className='text-lg font-semibold text-gray-900 direction-ltr text-right'>
                       {patient.emergencyContactPhone}
                     </p>
                   </div>
                 )}
                 {patient.emergencyContactRelation && (
-                  <div>
-                    <p className='text-sm text-gray-600'>العلاقة</p>
-                    <p className='text-lg font-medium text-gray-900'>
+                  <div className='bg-red-50 rounded-lg p-4'>
+                    <p className='text-sm text-gray-600 mb-1'>العلاقة</p>
+                    <p className='text-lg font-semibold text-gray-900'>
                       {patient.emergencyContactRelation}
                     </p>
                   </div>
@@ -339,14 +357,17 @@ export default function PatientDetailClient() {
 
           {/* Medical History */}
           {patient.medicalHistory && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4'>
+            <div className='bg-white rounded-xl shadow-md p-6 border border-green-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 pb-3 border-b border-green-200'>
+                <div className='bg-green-100 p-2 rounded-lg'>
+                  <FileText className='w-5 h-5 text-green-600' />
+                </div>
                 التاريخ الطبي
               </h2>
               <div className='space-y-4'>
                 {patient.medicalHistory.allergies && (
-                  <div>
-                    <p className='text-sm font-medium text-gray-700'>
+                  <div className='bg-green-50 rounded-lg p-4 border-r-4 border-green-500'>
+                    <p className='text-sm font-semibold text-green-700 mb-2'>
                       الحساسيات
                     </p>
                     <p className='text-gray-900'>
@@ -355,8 +376,8 @@ export default function PatientDetailClient() {
                   </div>
                 )}
                 {patient.medicalHistory.chronicDiseases && (
-                  <div>
-                    <p className='text-sm font-medium text-gray-700'>
+                  <div className='bg-green-50 rounded-lg p-4 border-r-4 border-green-500'>
+                    <p className='text-sm font-semibold text-green-700 mb-2'>
                       الأمراض المزمنة
                     </p>
                     <p className='text-gray-900'>
@@ -365,8 +386,8 @@ export default function PatientDetailClient() {
                   </div>
                 )}
                 {patient.medicalHistory.previousSurgeries && (
-                  <div>
-                    <p className='text-sm font-medium text-gray-700'>
+                  <div className='bg-green-50 rounded-lg p-4 border-r-4 border-green-500'>
+                    <p className='text-sm font-semibold text-green-700 mb-2'>
                       العمليات السابقة
                     </p>
                     <p className='text-gray-900'>
@@ -375,8 +396,8 @@ export default function PatientDetailClient() {
                   </div>
                 )}
                 {patient.medicalHistory.familyHistory && (
-                  <div>
-                    <p className='text-sm font-medium text-gray-700'>
+                  <div className='bg-green-50 rounded-lg p-4 border-r-4 border-green-500'>
+                    <p className='text-sm font-semibold text-green-700 mb-2'>
                       التاريخ العائلي
                     </p>
                     <p className='text-gray-900'>
@@ -390,40 +411,53 @@ export default function PatientDetailClient() {
 
           {/* Visits */}
           {patient.visits && patient.visits.length > 0 && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-                <Stethoscope className='w-5 h-5' />
-                الزيارات ({patient.visits.length})
+            <div className='bg-white rounded-xl shadow-md p-6 border border-purple-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center justify-between pb-3 border-b border-purple-200'>
+                <div className='flex items-center gap-2'>
+                  <div className='bg-purple-100 p-2 rounded-lg'>
+                    <Stethoscope className='w-5 h-5 text-purple-600' />
+                  </div>
+                  الزيارات
+                </div>
+                <span className='bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-semibold'>
+                  {patient.visits.length}
+                </span>
               </h2>
               <div className='space-y-3'>
                 {patient.visits.map((visit) => (
                   <div
                     key={visit.id}
-                    className='border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors'
+                    className='border-2 border-gray-200 rounded-xl p-4 hover:border-purple-300 hover:bg-purple-50 cursor-pointer transition-all duration-200 hover:shadow-md'
                     onClick={() => router.push(`/visits/${visit.id}`)}
                   >
                     <div className='flex items-center justify-between'>
                       <div className='flex-1'>
-                        <p className='font-medium text-gray-900'>
-                          {formatDate(visit.visitDate)}
-                        </p>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <Calendar className='w-4 h-4 text-purple-600' />
+                          <p className='font-semibold text-gray-900'>
+                            {formatDate(visit.visitDate)}
+                          </p>
+                        </div>
                         {visit.chiefComplaint && (
-                          <p className='text-sm text-gray-600 mt-1'>
+                          <p className='text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded-lg'>
                             {visit.chiefComplaint}
                           </p>
                         )}
-                        <p className='text-xs text-gray-500 mt-1'>
-                          د. {visit.doctor.firstName} {visit.doctor.lastName}
-                        </p>
-                        {visit.prescriptions &&
-                          visit.prescriptions.length > 0 && (
-                            <p className='text-xs text-purple-600 mt-1 flex items-center gap-1'>
-                              <Pill className='w-3 h-3' />
-                              {visit.prescriptions.length} روشتة
-                            </p>
-                          )}
+                        <div className='flex items-center gap-4 mt-3'>
+                          <p className='text-xs text-gray-600 flex items-center gap-1'>
+                            <User className='w-3 h-3' />
+                            د. {visit.doctor.firstName} {visit.doctor.lastName}
+                          </p>
+                          {visit.prescriptions &&
+                            visit.prescriptions.length > 0 && (
+                              <p className='text-xs text-purple-600 flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-full'>
+                                <Pill className='w-3 h-3' />
+                                {visit.prescriptions.length} روشتة
+                              </p>
+                            )}
+                        </div>
                       </div>
-                      <ArrowRight className='w-5 h-5 text-gray-400' />
+                      <ArrowRight className='w-5 h-5 text-purple-400' />
                     </div>
                   </div>
                 ))}
@@ -433,29 +467,42 @@ export default function PatientDetailClient() {
 
           {/* Appointments */}
           {patient.appointments && patient.appointments.length > 0 && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-                <Calendar className='w-5 h-5' />
-                المواعيد ({patient.appointments.length})
+            <div className='bg-white rounded-xl shadow-md p-6 border border-blue-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center justify-between pb-3 border-b border-blue-200'>
+                <div className='flex items-center gap-2'>
+                  <div className='bg-blue-100 p-2 rounded-lg'>
+                    <Calendar className='w-5 h-5 text-blue-600' />
+                  </div>
+                  المواعيد
+                </div>
+                <span className='bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-semibold'>
+                  {patient.appointments.length}
+                </span>
               </h2>
               <div className='space-y-3'>
                 {patient.appointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className='border border-gray-200 rounded-lg p-4'
+                    className='border-2 border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200'
                   >
                     <div className='flex items-center justify-between'>
-                      <div>
-                        <p className='font-medium text-gray-900'>
-                          {formatDateTime(appointment.appointmentDate)}
-                        </p>
-                        <p className='text-sm text-gray-600 mt-1'>
-                          {appointment.status}
-                        </p>
-                        <p className='text-xs text-gray-500 mt-1'>
-                          د. {appointment.doctor.firstName}{' '}
-                          {appointment.doctor.lastName}
-                        </p>
+                      <div className='flex-1'>
+                        <div className='flex items-center gap-2 mb-2'>
+                          <Calendar className='w-4 h-4 text-blue-600' />
+                          <p className='font-semibold text-gray-900'>
+                            {formatDateTime(appointment.appointmentDate)}
+                          </p>
+                        </div>
+                        <div className='flex items-center gap-3 mt-2'>
+                          <span className='text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium'>
+                            {appointment.status}
+                          </span>
+                          <p className='text-xs text-gray-600 flex items-center gap-1'>
+                            <User className='w-3 h-3' />
+                            د. {appointment.doctor.firstName}{' '}
+                            {appointment.doctor.lastName}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -466,21 +513,29 @@ export default function PatientDetailClient() {
 
           {/* Diagnoses */}
           {patient.diagnoses && patient.diagnoses.length > 0 && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-                <FileText className='w-5 h-5' />
-                التشخيصات ({patient.diagnoses.length})
+            <div className='bg-white rounded-xl shadow-md p-6 border border-orange-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center justify-between pb-3 border-b border-orange-200'>
+                <div className='flex items-center gap-2'>
+                  <div className='bg-orange-100 p-2 rounded-lg'>
+                    <FileText className='w-5 h-5 text-orange-600' />
+                  </div>
+                  التشخيصات
+                </div>
+                <span className='bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-semibold'>
+                  {patient.diagnoses.length}
+                </span>
               </h2>
               <div className='space-y-3'>
                 {patient.diagnoses.map((diagnosis) => (
                   <div
                     key={diagnosis.id}
-                    className='border border-gray-200 rounded-lg p-4'
+                    className='border-2 border-gray-200 rounded-xl p-4 hover:border-orange-300 hover:bg-orange-50 transition-all duration-200'
                   >
-                    <p className='font-medium text-gray-900'>
+                    <p className='font-semibold text-gray-900 mb-2'>
                       {diagnosis.diagnosis}
                     </p>
-                    <p className='text-xs text-gray-500 mt-1'>
+                    <p className='text-xs text-gray-500 flex items-center gap-1'>
+                      <Calendar className='w-3 h-3' />
                       {formatDate(diagnosis.createdAt)}
                     </p>
                   </div>
@@ -492,40 +547,44 @@ export default function PatientDetailClient() {
 
         {/* Right Column - Sidebar */}
         <div className='space-y-6'>
-
           {/* Pregnancy Records */}
           {patient.pregnancyRecords && patient.pregnancyRecords.length > 0 && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4 flex items-center gap-2'>
-                <Baby className='w-5 h-5' />
+            <div className='bg-white rounded-xl shadow-md p-6 border border-pink-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 pb-3 border-b border-pink-200'>
+                <div className='bg-pink-100 p-2 rounded-lg'>
+                  <Baby className='w-5 h-5 text-pink-600' />
+                </div>
                 سجلات الحمل
               </h2>
               <div className='space-y-3'>
                 {patient.pregnancyRecords.map((pregnancy) => (
                   <div
                     key={pregnancy.id}
-                    className='border border-gray-200 rounded-lg p-4'
+                    className='border-2 border-gray-200 rounded-xl p-4 hover:border-pink-300 hover:bg-pink-50 transition-all duration-200'
                   >
-                    <p className='text-sm text-gray-600'>تاريخ آخر دورة</p>
-                    <p className='font-medium text-gray-900'>
-                      {formatDate(pregnancy.lmpDate)}
-                    </p>
+                    <div className='bg-pink-50 rounded-lg p-3 mb-3'>
+                      <p className='text-sm text-pink-700 font-medium mb-1'>
+                        تاريخ آخر دورة
+                      </p>
+                      <p className='font-semibold text-gray-900'>
+                        {formatDate(pregnancy.lmpDate)}
+                      </p>
+                    </div>
                     {pregnancy.edd && (
-                      <>
-                        <p className='text-sm text-gray-600 mt-2'>
+                      <div className='bg-pink-50 rounded-lg p-3 mb-3'>
+                        <p className='text-sm text-pink-700 font-medium mb-1'>
                           تاريخ الولادة المتوقع
                         </p>
-                        <p className='font-medium text-gray-900'>
+                        <p className='font-semibold text-gray-900'>
                           {formatDate(pregnancy.edd)}
                         </p>
-                      </>
+                      </div>
                     )}
                     <span
-                      className={`inline-block mt-2 px-2 py-1 text-xs rounded ${
-                        pregnancy.isActive
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
+                      className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${pregnancy.isActive
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                        }`}
                     >
                       {pregnancy.isActive ? 'نشط' : 'منتهي'}
                     </span>
@@ -537,25 +596,35 @@ export default function PatientDetailClient() {
 
           {/* Notes */}
           {patient.notes && (
-            <div className='bg-white rounded-lg shadow-md p-6'>
-              <h2 className='text-xl font-bold text-gray-900 mb-4'>ملاحظات</h2>
-              <p className='text-gray-700 whitespace-pre-wrap'>
-                {patient.notes}
-              </p>
+            <div className='bg-white rounded-xl shadow-md p-6 border border-yellow-100 hover:shadow-lg transition-shadow'>
+              <h2 className='text-xl font-bold text-gray-900 mb-6 flex items-center gap-2 pb-3 border-b border-yellow-200'>
+                <div className='bg-yellow-100 p-2 rounded-lg'>
+                  <FileText className='w-5 h-5 text-yellow-600' />
+                </div>
+                ملاحظات
+              </h2>
+              <div className='bg-yellow-50 rounded-lg p-4'>
+                <p className='text-gray-700 whitespace-pre-wrap leading-relaxed'>
+                  {patient.notes}
+                </p>
+              </div>
             </div>
           )}
 
           {/* Quick Actions */}
-          <div className='bg-white rounded-lg shadow-md p-6'>
-            <h2 className='text-xl font-bold text-gray-900 mb-4'>
+          <div className='bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg p-6 text-white sticky top-20'>
+            <h2 className='text-xl font-bold mb-6 flex items-center gap-2'>
+              <div className='bg-white/20 backdrop-blur-sm p-2 rounded-lg'>
+                <Plus className='w-5 h-5' />
+              </div>
               إجراءات سريعة
             </h2>
-            <div className='space-y-2'>
+            <div className='space-y-3'>
               <button
                 onClick={() =>
                   router.push(`/prescriptions/new?patientId=${patient.id}`)
                 }
-                className='w-full flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
+                className='w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-200 font-medium hover:scale-105 transform'
               >
                 <Pill className='w-5 h-5' />
                 روشتة جديدة
@@ -564,7 +633,7 @@ export default function PatientDetailClient() {
                 onClick={() =>
                   router.push(`/appointments/new?patientId=${patient.id}`)
                 }
-                className='w-full flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
+                className='w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-200 font-medium hover:scale-105 transform'
               >
                 <Calendar className='w-5 h-5' />
                 موعد جديد
@@ -573,7 +642,7 @@ export default function PatientDetailClient() {
                 onClick={() =>
                   router.push(`/visits/new?patientId=${patient.id}`)
                 }
-                className='w-full flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors'
+                className='w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-200 font-medium hover:scale-105 transform'
               >
                 <Stethoscope className='w-5 h-5' />
                 زيارة جديدة
@@ -585,35 +654,46 @@ export default function PatientDetailClient() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center'>
+        <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
           <div
-            className='absolute inset-0 bg-black/30 backdrop-blur-sm'
+            className='absolute inset-0 bg-black/50 backdrop-blur-sm'
             onClick={() => setShowDeleteConfirm(false)}
           />
           <div
-            className='bg-white rounded-lg shadow-xl p-6 max-w-md w-full relative'
+            className='bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative transform transition-all'
             onClick={(e) => e.stopPropagation()}
             dir='rtl'
           >
-            <h3 className='text-xl font-bold text-gray-900 mb-4'>
+            <div className='flex items-center justify-center mb-6'>
+              <div className='bg-red-100 p-4 rounded-full'>
+                <Trash2 className='w-8 h-8 text-red-600' />
+              </div>
+            </div>
+            <h3 className='text-2xl font-bold text-gray-900 mb-3 text-center'>
               تأكيد الحذف
             </h3>
-            <p className='text-gray-600 mb-6'>
-              هل أنت متأكد من حذف المريض {patient.firstName} {patient.lastName}؟
-              لا يمكن التراجع عن هذا الإجراء.
+            <p className='text-gray-600 mb-8 text-center leading-relaxed'>
+              هل أنت متأكد من حذف المريض{' '}
+              <span className='font-bold text-gray-900'>
+                {patient.firstName} {patient.lastName}
+              </span>
+              ؟<br />
+              <span className='text-red-600 text-sm'>
+                لا يمكن التراجع عن هذا الإجراء.
+              </span>
             </p>
-            <div className='flex gap-4'>
+            <div className='flex gap-3'>
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className='flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors'
+                className='flex-1 px-6 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium hover:scale-105 transform'
               >
                 إلغاء
               </button>
               <button
                 onClick={handleDelete}
-                className='flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors'
+                className='flex-1 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all duration-200 font-medium hover:scale-105 transform shadow-lg'
               >
-                حذف
+                حذف نهائياً
               </button>
             </div>
           </div>

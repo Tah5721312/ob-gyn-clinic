@@ -8,7 +8,7 @@ import { VisitDetail } from "@/components/visits/VisitDetail";
 export default async function VisitDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await getServerSession(authOptions);
 
@@ -16,21 +16,53 @@ export default async function VisitDetailPage({
     redirect("/signin");
   }
 
-  const visitId = parseInt(params.id);
+  const { id } = await params;
+  const visitId = parseInt(id);
 
   if (isNaN(visitId)) {
-    redirect("/visits/new");
+    return (
+      <main className="container mx-auto p-6 max-w-4xl" dir="rtl">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">معرّف الزيارة غير صحيح</h1>
+          <p className="text-gray-600 mb-6">معرّف الزيارة يجب أن يكون رقماً صحيحاً</p>
+          <a href="/visits" className="text-blue-600 hover:text-blue-700 font-semibold">
+            العودة إلى الزيارات
+          </a>
+        </div>
+      </main>
+    );
   }
 
   const visit = await getVisitById(prisma, visitId);
 
   if (!visit) {
-    redirect("/visits/new");
+    return (
+      <main className="container mx-auto p-6 max-w-4xl" dir="rtl">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">الزيارة غير موجودة</h1>
+          <p className="text-gray-600 mb-6">رقم الزيارة المطلوب ({visitId}) غير موجود في النظام</p>
+          <a href="/visits" className="text-blue-600 hover:text-blue-700 font-semibold">
+            العودة إلى الزيارات
+          </a>
+        </div>
+      </main>
+    );
   }
 
+  // تحويل Decimal objects إلى أرقام عادية للتمرير إلى Client Component
+  const visitData = {
+    ...visit,
+    weight: visit.weight ? Number(visit.weight) : null,
+    temperature: visit.temperature ? Number(visit.temperature) : null,
+    patient: {
+      ...visit.patient,
+      birthDate: visit.patient.birthDate,
+    },
+  };
+
   return (
-    <main className="container mx-auto p-6 max-w-4xl">
-      <VisitDetail visit={visit} />
+    <main className="container mx-auto p-6 max-w-4xl" dir="rtl">
+      <VisitDetail visit={visitData} />
     </main>
   );
 }

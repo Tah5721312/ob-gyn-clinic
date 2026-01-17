@@ -17,7 +17,7 @@ export default async function PatientDetailPage() {
   }
 
   return (
-    <main className="container mx-auto p-6 max-w-6xl" dir="rtl">
+    <main className="container mx-auto p-4 md:p-6 max-w-7xl bg-gray-50 min-h-screen" dir="rtl">
       <PatientDetailClient />
     </main>
   );

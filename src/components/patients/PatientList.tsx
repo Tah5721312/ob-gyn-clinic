@@ -27,7 +27,6 @@ export function PatientList({ initialPatients = [] }: PatientListProps) {
     phone: string;
     phone2?: string | null;
     address?: string | null;
-    maritalStatus?: string | null;
     emergencyContactName?: string | null;
     emergencyContactPhone?: string | null;
     emergencyContactRelation?: string | null;

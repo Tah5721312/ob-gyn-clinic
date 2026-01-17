@@ -48,6 +48,14 @@ export default function Navigation() {
                       <span>الرئيسية</span>
                     </Link>
                     <Link
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <Users size={18} />
+                      <span>المرضى</span>
+                    </Link>
+                    <Link
                       href='/appointments'
                       className='flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors'
                     >
@@ -199,6 +207,14 @@ export default function Navigation() {
                       onClick={() => setIsMobileOpen(false)}
                     >
                       <span>الرئيسية</span>
+                    </Link>
+                    <Link
+                      href='/patients'
+                      className='flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors'
+                      onClick={() => setIsMobileOpen(false)}
+                    >
+                      <Users size={18} />
+                      <span>المرضى</span>
                     </Link>
                     <Link
                       href='/appointments'

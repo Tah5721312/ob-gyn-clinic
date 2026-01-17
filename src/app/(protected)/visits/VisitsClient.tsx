@@ -12,7 +12,7 @@ export default function VisitsClient() {
   const [visits, setVisits] = useState<VisitListItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState("");
   const [isDraftFilter, setIsDraftFilter] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
 
@@ -22,7 +22,9 @@ export default function VisitsClient() {
     try {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      if (selectedDate) params.append("visitDate", selectedDate);
+      if (selectedDate) {
+        params.append("visitDate", selectedDate);
+      }
       if (isDraftFilter !== "") {
         params.append("isDraft", isDraftFilter);
       }
@@ -229,15 +231,15 @@ export default function VisitsClient() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => router.push(`/visits/new?patientId=${visit.patientId}`)}
+                          onClick={() => router.push(`/visits/${visit.id}`)}
                           className="text-blue-600 hover:text-blue-900 transition-colors"
-                          title="اضافة"
+                          title="عرض التفاصيل"
                         >
-                          <Plus className="w-5 h-5" />
+                          <Eye className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => router.push(`/visits/new?patientId=${visit.patientId}&visitId=${visit.id}`)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
+                          className="text-green-600 hover:text-green-900 transition-colors"
                           title="تعديل"
                         >
                           <Edit className="w-5 h-5" />
