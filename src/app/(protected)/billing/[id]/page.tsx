@@ -10,9 +10,10 @@ export default async function InvoiceDetailPage() {
     redirect('/signin');
   }
 
-  // التحقق من الصلاحيات - للإدارة فقط
-  if (session.user.role !== 'ADMIN') {
-    redirect('/');
+  // التحقق من الصلاحيات - للإدارة والاستقبال
+  const allowedRoles = ["ADMIN", "RECEPTIONIST"];
+  if (!allowedRoles.includes(session.user.role)) {
+    redirect("/");
   }
 
   return (

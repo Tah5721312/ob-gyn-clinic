@@ -36,7 +36,7 @@ export async function createAppointment(
   prisma: PrismaClient,
   data: CreateAppointmentData
 ) {
-  const { totalAmount, paidAmount, paymentMethod, ...restData } = data;
+  const { totalAmount, paidAmount, paymentMethod, createdBy, ...restData } = data;
 
   const appointment = await prisma.appointment.create({
     data: {

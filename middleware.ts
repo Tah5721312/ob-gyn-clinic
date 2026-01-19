@@ -26,6 +26,7 @@ export default withAuth(
       '/financial': ['ADMIN'],
       '/payments': ['ADMIN', 'RECEPTIONIST'],
       '/billing': ['ADMIN', 'RECEPTIONIST'],
+      '/billing/[id]': ['ADMIN', 'RECEPTIONIST'],
       '/visits': ['DOCTOR', 'ADMIN', 'RECEPTIONIST'],
       '/visits/new': ['DOCTOR'],
       '/patients': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],

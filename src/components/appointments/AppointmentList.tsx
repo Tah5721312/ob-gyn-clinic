@@ -37,7 +37,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
         // إزالة patientId من URL بعد فتح modal
         const newSearchParams = new URLSearchParams(searchParams.toString());
         newSearchParams.delete('patientId');
-        const newUrl = newSearchParams.toString() 
+        const newUrl = newSearchParams.toString()
           ? `${window.location.pathname}?${newSearchParams.toString()}`
           : window.location.pathname;
         router.replace(newUrl);
@@ -315,27 +315,31 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                             <Stethoscope size={18} />
                           </button>
                         )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setEditingAppointment(appointment);
-                            setIsModalOpen(true);
-                          }}
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                          title="تعديل الموعد"
-                        >
-                          <Edit size={18} />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(appointment.id, appointment.patientName);
-                          }}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          title="حذف الموعد"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                        {!(session?.user?.role === 'RECEPTIONIST' && appointment.status === AppointmentStatus.COMPLETED) && (
+                          <>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingAppointment(appointment);
+                                setIsModalOpen(true);
+                              }}
+                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                              title="تعديل الموعد"
+                            >
+                              <Edit size={18} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(appointment.id, appointment.patientName);
+                              }}
+                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              title="حذف الموعد"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

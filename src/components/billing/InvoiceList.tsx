@@ -6,6 +6,7 @@ import { Search, Calendar, DollarSign, FileText, Plus, CheckCircle, XCircle, Clo
 import { useRouter } from "next/navigation";
 import { InvoiceListItem } from "@/lib/invoices/types";
 import { NewInvoiceModal } from "./NewInvoiceModal";
+import { PaymentStatus, PaymentStatusLabels } from "@/lib/enumdb";
 
 interface InvoiceListProps {
   initialInvoices?: InvoiceListItem[];
@@ -64,11 +65,12 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
   };
 
   const getStatusBadge = (status: string) => {
+    // دعم القيم العربية والإنجليزية المخزنة في قاعدة البيانات
     const statusMap: Record<string, { label: string; className: string; icon: any }> = {
-      PAID: { label: "مدفوع", className: "bg-green-100 text-green-800", icon: CheckCircle },
-      PARTIAL: { label: "جزئي", className: "bg-yellow-100 text-yellow-800", icon: Clock },
-      UNPAID: { label: "غير مدفوع", className: "bg-red-100 text-red-800", icon: XCircle },
-      CANCELLED: { label: "ملغي", className: "bg-gray-100 text-gray-800", icon: XCircle },
+      [PaymentStatus.PAID]: { label: PaymentStatusLabels[PaymentStatus.PAID], className: "bg-green-100 text-green-800", icon: CheckCircle },
+      [PaymentStatus.PARTIAL]: { label: PaymentStatusLabels[PaymentStatus.PARTIAL], className: "bg-yellow-100 text-yellow-800", icon: Clock },
+      [PaymentStatus.UNPAID]: { label: PaymentStatusLabels[PaymentStatus.UNPAID], className: "bg-red-100 text-red-800", icon: XCircle },
+      [PaymentStatus.CANCELLED]: { label: PaymentStatusLabels[PaymentStatus.CANCELLED], className: "bg-gray-100 text-gray-800", icon: XCircle },
     };
 
     const statusInfo = statusMap[status] || { label: status, className: "bg-gray-100 text-gray-800", icon: FileText };
@@ -131,10 +133,10 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             <option value="">جميع الحالات</option>
-            <option value="PAID">مدفوع</option>
-            <option value="PARTIAL">جزئي</option>
-            <option value="UNPAID">غير مدفوع</option>
-            <option value="CANCELLED">ملغي</option>
+            <option value={PaymentStatus.PAID}>{PaymentStatusLabels[PaymentStatus.PAID]}</option>
+            <option value={PaymentStatus.PARTIAL}>{PaymentStatusLabels[PaymentStatus.PARTIAL]}</option>
+            <option value={PaymentStatus.UNPAID}>{PaymentStatusLabels[PaymentStatus.UNPAID]}</option>
+            <option value={PaymentStatus.CANCELLED}>{PaymentStatusLabels[PaymentStatus.CANCELLED]}</option>
           </select>
         </div>
       </div>
@@ -150,14 +152,14 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">رقم الفاتورة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المريض</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">التاريخ</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المبلغ الإجمالي</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المدفوع</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">المتبقي</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">رقم الفاتورة</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">المريض</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">التاريخ</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">المبلغ الإجمالي</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">المدفوع</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">المتبقي</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">الإجراءات</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">

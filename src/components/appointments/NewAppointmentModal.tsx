@@ -162,11 +162,12 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
 
     const doctorId = session?.user?.doctorId || 1;
     try {
-      const response = await apiFetch(`/api/appointments?appointmentDate=${date}&doctorId=${doctorId}`);
+      // Add timestamp to prevent caching
+      const response = await apiFetch(`/api/appointments?appointmentDate=${date}&doctorId=${doctorId}&_t=${Date.now()}`);
       const result = await response.json();
 
       if (result.success && result.data) {
-        // استخراج الأوقات المحجوزة مع مدة كل موعد
+        // استخراج الأوقات المحجوزة
         const bookedAppointments = result.data
           .filter((apt: any) => {
             // استبعاد الموعد الحالي إذا كان في وضع التعديل
@@ -177,9 +178,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
             return apt.status !== AppointmentStatus.CANCELLED && apt.status !== AppointmentStatus.NO_SHOW;
           })
           .map((apt: any) => {
-            const time = typeof apt.appointmentTime === 'string'
-              ? new Date(apt.appointmentTime)
-              : apt.appointmentTime;
+            const time = new Date(apt.appointmentTime);
             const hours = time.getHours().toString().padStart(2, '0');
             const minutes = time.getMinutes().toString().padStart(2, '0');
             return {
@@ -195,29 +194,23 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
           const startTime = new Date();
           startTime.setHours(parseInt(startHours), parseInt(startMinutes), 0, 0);
 
-          bookedTimes.push(apt.time);
-
-          const slotDuration = 5;
           const endTime = new Date(startTime);
           endTime.setMinutes(endTime.getMinutes() + apt.duration);
 
+          const slotDuration = 5; // Check every 5 minutes
           let currentTime = new Date(startTime);
 
+          // Loop while current time is strictly less than end time
+          // This ensures the end time slot itself remains available for the next appointment
           while (currentTime < endTime) {
             const hours = currentTime.getHours().toString().padStart(2, '0');
             const minutes = currentTime.getMinutes().toString().padStart(2, '0');
             const timeSlot = `${hours}:${minutes}`;
+
             if (!bookedTimes.includes(timeSlot)) {
               bookedTimes.push(timeSlot);
             }
             currentTime.setMinutes(currentTime.getMinutes() + slotDuration);
-          }
-
-          const endHours = endTime.getHours().toString().padStart(2, '0');
-          const endMinutes = endTime.getMinutes().toString().padStart(2, '0');
-          const endTimeSlot = `${endHours}:${endMinutes}`;
-          if (!bookedTimes.includes(endTimeSlot)) {
-            bookedTimes.push(endTimeSlot);
           }
         });
 
@@ -228,16 +221,18 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
       }
     } catch (error) {
       console.error("Error fetching booked appointments:", error);
+      // Don't clear booked slots on error to be safe, or handle differently?
+      // For now, keeping empty clears it, which is risky, but standard fallback.
       setBookedTimeSlots([]);
     }
   }, [session?.user?.doctorId]);
 
-  // جلب المواعيد المحجوزة في نفس التاريخ
+  // جلب المواعيد المحجوزة عند تغيير التاريخ
   useEffect(() => {
-    if (formData.appointmentDate && session?.user?.doctorId) {
+    if (formData.appointmentDate) {
       fetchBookedAppointments(formData.appointmentDate, appointmentToEdit?.id);
     }
-  }, [formData.appointmentDate, fetchBookedAppointments, appointmentToEdit?.id]);
+  }, [formData.appointmentDate, session?.user?.doctorId, fetchBookedAppointments, appointmentToEdit?.id]);
 
   // حساب الأوقات المتاحة
   useEffect(() => {
@@ -274,9 +269,8 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         }));
 
         if (bookedTimeSlots.includes(formData.appointmentTime) || !slots.includes(formData.appointmentTime)) {
-          if (slots.length > 0) {
-            setFormData(prev => ({ ...prev, appointmentTime: slots[0] }));
-          }
+          // Clear the time if it's no longer available, but don't auto-select
+          setFormData(prev => ({ ...prev, appointmentTime: "" }));
         }
       } else {
         setAvailableTimeSlots([]);
@@ -346,6 +340,7 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
           totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : undefined,
           paidAmount: formData.paidAmount ? parseFloat(formData.paidAmount) : undefined,
           paymentMethod: formData.paymentMethod,
+          createdBy: session?.user?.id ? parseInt(session.user.id as string) : undefined,
         })
       };
 
@@ -459,7 +454,9 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
                       <button
                         key={patient.id}
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           setSelectedPatient(patient);
                           setSearchTerm(`${patient.firstName} ${patient.lastName}`);
                           setShowPatientSearch(false);
@@ -494,65 +491,121 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
               />
             </div>
 
+            {/* حالة الموعد */}
             <div>
               <label className="block text-sm font-semibold text-gray-800 mb-3">
-                <Clock className="inline w-4 h-4 mr-2" />
-                وقت الموعد *
+                حالة الموعد *
               </label>
-              {availableTimeSlots.length > 0 ? (
-                <>
-                  <select
-                    required
-                    value={formData.appointmentTime}
-                    onChange={(e) => setFormData({ ...formData, appointmentTime: e.target.value })}
-                    className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  >
-                    {availableTimeSlots.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-
-                </>
-              ) : (
-                <>
-                  <input
-                    type="time"
-                    required
-                    value={formData.appointmentTime}
-                    onChange={(e) => setFormData({ ...formData, appointmentTime: e.target.value })}
-                    className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                  {formData.appointmentDate && (
-                    <p className="text-xs text-gray-500 mt-2">
-                      {schedules.length > 0
-                        ? "لا يوجد جدول زمني لهذا اليوم، يمكنك اختيار الوقت يدوياً"
-                        : "لا يوجد جدول زمني، يمكنك اختيار الوقت يدوياً"}
-                    </p>
-                  )}
-                </>
-              )}
+              <select
+                required
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value={AppointmentStatus.BOOKED}>{AppointmentStatusLabels[AppointmentStatus.BOOKED]}</option>
+                <option value={AppointmentStatus.CONFIRMED}>{AppointmentStatusLabels[AppointmentStatus.CONFIRMED]}</option>
+                <option value={AppointmentStatus.COMPLETED}>{AppointmentStatusLabels[AppointmentStatus.COMPLETED]}</option>
+                <option value={AppointmentStatus.CANCELLED}>{AppointmentStatusLabels[AppointmentStatus.CANCELLED]}</option>
+                <option value={AppointmentStatus.NO_SHOW}>{AppointmentStatusLabels[AppointmentStatus.NO_SHOW]}</option>
+              </select>
             </div>
+
           </div>
 
-          {/* حالة الموعد */}
           <div>
             <label className="block text-sm font-semibold text-gray-800 mb-3">
-              حالة الموعد *
+              <Clock className="inline w-4 h-4 mr-2" />
+              وقت الموعد *
             </label>
-            <select
-              required
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value={AppointmentStatus.BOOKED}>{AppointmentStatusLabels[AppointmentStatus.BOOKED]}</option>
-              <option value={AppointmentStatus.CONFIRMED}>{AppointmentStatusLabels[AppointmentStatus.CONFIRMED]}</option>
-              <option value={AppointmentStatus.COMPLETED}>{AppointmentStatusLabels[AppointmentStatus.COMPLETED]}</option>
-              <option value={AppointmentStatus.CANCELLED}>{AppointmentStatusLabels[AppointmentStatus.CANCELLED]}</option>
-              <option value={AppointmentStatus.NO_SHOW}>{AppointmentStatusLabels[AppointmentStatus.NO_SHOW]}</option>
-            </select>
+
+            {formData.appointmentDate && schedules.length > 0 ? (
+              <>
+                {/* عرض عدد المواعيد المحجوزة */}
+                {bookedAppointmentsCount > 0 && (
+                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      📅 عدد المواعيد المحجوزة اليوم: <span className="font-bold">{bookedAppointmentsCount}</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Grid للمواعيد */}
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2 max-h-64 overflow-y-auto p-2 bg-gray-50 rounded-xl border border-gray-200">
+                  {(() => {
+                    const selectedDate = new Date(formData.appointmentDate);
+                    const dayOfWeek = selectedDate.getDay();
+                    const daySchedule = schedules.find(s => s.dayOfWeek === dayOfWeek && s.isActive);
+
+                    if (!daySchedule) return null;
+
+                    const allSlots: string[] = [];
+                    const startTime = new Date(daySchedule.startTime);
+                    const endTime = new Date(daySchedule.endTime);
+                    const slotDuration = daySchedule.slotDurationMinutes || 30;
+
+                    let currentTime = new Date(startTime);
+
+                    while (currentTime < endTime) {
+                      const hours = currentTime.getHours().toString().padStart(2, '0');
+                      const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+                      allSlots.push(`${hours}:${minutes}`);
+                      currentTime.setMinutes(currentTime.getMinutes() + slotDuration);
+                    }
+
+                    return allSlots.map((time) => {
+                      const isBooked = bookedTimeSlots.includes(time);
+                      const isSelected = formData.appointmentTime === time;
+
+                      return (
+                        <button
+                          key={time}
+                          type="button"
+                          disabled={isBooked}
+                          onClick={() => !isBooked && setFormData({ ...formData, appointmentTime: time })}
+                          className={`
+                              px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200
+                              ${isBooked
+                              ? 'bg-red-100 text-red-400 border-2 border-red-200 cursor-not-allowed line-through'
+                              : isSelected
+                                ? 'bg-blue-600 text-white border-2 border-blue-700 shadow-md scale-105'
+                                : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                            }
+                            `}
+                        >
+                          {time}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+
+                {/* الوقت المختار */}
+                {formData.appointmentTime && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      ⏰ الوقت المختار: <span className="font-bold">{formData.appointmentTime}</span>
+                    </p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <input
+                  type="time"
+                  required
+                  value={formData.appointmentTime}
+                  onChange={(e) => setFormData({ ...formData, appointmentTime: e.target.value })}
+                  className="w-full px-8 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+                {formData.appointmentDate && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    {schedules.length > 0
+                      ? "لا يوجد جدول زمني لهذا اليوم، يمكنك اختيار الوقت يدوياً"
+                      : "لا يوجد جدول زمني، يمكنك اختيار الوقت يدوياً"}
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           {/* Payment Section - Only for New Appointments */}

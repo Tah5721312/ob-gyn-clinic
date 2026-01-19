@@ -71,10 +71,10 @@ export function calculateInvoiceTotals(input: {
 export function resolvePaymentStatus(
   netAmount: number,
   paidAmount: number
-): "غير مدفوع" | "مدفوع جزئياً" | "مدفوع" {
-  if (paidAmount === 0) return "غير مدفوع";
-  if (paidAmount < netAmount) return "مدفوع جزئياً";
-  return "مدفوع";
+): "UNPAID" | "PARTIAL" | "PAID" {
+  if (paidAmount === 0) return "UNPAID";
+  if (paidAmount < netAmount) return "PARTIAL";
+  return "PAID";
 }
 
 // ====================================
