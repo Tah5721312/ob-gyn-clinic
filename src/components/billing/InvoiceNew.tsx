@@ -29,11 +29,40 @@ export default function NewInvoicePage() {
     notes: "",
   });
 
-  // Handle patientId from URL
+  // Handle patientId and invoiceId from URL
   useEffect(() => {
     const patientId = searchParams.get('patientId');
-    if (patientId) {
-      // Fetch patient data
+    const invoiceId = searchParams.get('invoiceId');
+
+    if (invoiceId) {
+      // Fetch invoice data for editing
+      apiFetch(`/api/invoices/${invoiceId}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            const invoice = result.data;
+            // Set patient data
+            setSelectedPatient({
+              id: invoice.patient.id,
+              firstName: invoice.patient.firstName,
+              lastName: invoice.patient.lastName,
+              phone: invoice.patient.phone,
+            });
+            setSearchTerm(`${invoice.patient.firstName} ${invoice.patient.lastName}`);
+
+            // Set form data
+            setFormData({
+              invoiceDate: new Date(invoice.invoiceDate).toISOString().split('T')[0],
+              subtotal: invoice.subtotal.toString(),
+              discount: invoice.discount.toString(),
+              totalAmount: invoice.totalAmount.toString(),
+              notes: invoice.notes || "",
+            });
+          }
+        })
+        .catch(error => console.error("Error fetching invoice:", error));
+    } else if (patientId) {
+      // Fetch patient data for new invoice
       apiFetch(`/api/patients/${patientId}`)
         .then(res => res.json())
         .then(result => {
@@ -91,32 +120,58 @@ export default function NewInvoicePage() {
 
     setLoading(true);
     try {
-      const invoiceNumber = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+      const invoiceId = searchParams.get('invoiceId');
 
-      const response = await apiFetch("/api/invoices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          invoiceNumber,
-          patientId: selectedPatient.id,
-          invoiceDate: formData.invoiceDate,
-          subtotal: parseFloat(formData.subtotal) || 0,
-          discount: parseFloat(formData.discount) || 0,
-          totalAmount: parseFloat(formData.totalAmount) || 0,
-          remainingAmount: parseFloat(formData.totalAmount) || 0,
-          notes: formData.notes || null,
-        }),
-      });
+      if (invoiceId) {
+        // Update existing invoice
+        const response = await apiFetch(`/api/invoices/${invoiceId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            patientId: selectedPatient.id,
+            invoiceDate: formData.invoiceDate,
+            subtotal: parseFloat(formData.subtotal) || 0,
+            discount: parseFloat(formData.discount) || 0,
+            totalAmount: parseFloat(formData.totalAmount) || 0,
+            notes: formData.notes || null,
+          }),
+        });
 
-      const result = await response.json();
-      if (result.success) {
-        router.push(`/billing/${result.data.id}`);
+        const result = await response.json();
+        if (result.success) {
+          router.push(`/billing/${invoiceId}`);
+        } else {
+          alert(result.error || "حدث خطأ أثناء تحديث الفاتورة");
+        }
       } else {
-        alert(result.error || "حدث خطأ أثناء إنشاء الفاتورة");
+        // Create new invoice
+        const invoiceNumber = `INV-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+
+        const response = await apiFetch("/api/invoices", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invoiceNumber,
+            patientId: selectedPatient.id,
+            invoiceDate: formData.invoiceDate,
+            subtotal: parseFloat(formData.subtotal) || 0,
+            discount: parseFloat(formData.discount) || 0,
+            totalAmount: parseFloat(formData.totalAmount) || 0,
+            remainingAmount: parseFloat(formData.totalAmount) || 0,
+            notes: formData.notes || null,
+          }),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          router.push(`/billing/${result.data.id}`);
+        } else {
+          alert(result.error || "حدث خطأ أثناء إنشاء الفاتورة");
+        }
       }
     } catch (error: any) {
-      console.error("Error creating invoice:", error);
-      alert("حدث خطأ أثناء إنشاء الفاتورة");
+      console.error("Error saving invoice:", error);
+      alert("حدث خطأ أثناء حفظ الفاتورة");
     } finally {
       setLoading(false);
     }
@@ -129,7 +184,9 @@ export default function NewInvoicePage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">إنشاء فاتورة جديدة</h1>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {searchParams.get('invoiceId') ? 'تعديل الفاتورة' : 'إنشاء فاتورة جديدة'}
+            </h1>
           </div>
           <button
             onClick={() => router.back()}

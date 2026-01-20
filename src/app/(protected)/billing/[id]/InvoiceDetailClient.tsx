@@ -6,7 +6,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { ArrowRight, DollarSign, Calendar, User, FileText, Plus, CheckCircle, XCircle, Clock, Printer, Edit, Trash2 } from "lucide-react";
 import { InvoiceItemType, InvoiceItemTypeLabels, PaymentMethod, PaymentMethodLabels, PaymentStatus } from "@/lib/enumdb";
-import { EditInvoiceModal } from "@/components/billing/EditInvoiceModal";
 import { DeleteInvoiceDialog } from "@/components/billing/DeleteInvoiceDialog";
 
 interface Invoice {
@@ -62,7 +61,6 @@ export default function InvoiceDetailClient() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [paymentFormData, setPaymentFormData] = useState({
     amount: "",
@@ -270,7 +268,7 @@ export default function InvoiceDetailClient() {
             طباعة
           </button>
           <button
-            onClick={() => setIsEditModalOpen(true)}
+            onClick={() => router.push(`/billing/new?invoiceId=${invoice.id}`)}
             className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors"
           >
             <Edit className="h-4 w-4" />
@@ -540,16 +538,6 @@ export default function InvoiceDetailClient() {
             </form>
           </div>
         </div>
-      )}
-
-      {/* Edit Invoice Modal */}
-      {invoice && (
-        <EditInvoiceModal
-          isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSuccess={fetchInvoice}
-          invoice={invoice}
-        />
       )}
 
       {/* Delete Invoice Dialog */}

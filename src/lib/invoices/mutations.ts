@@ -56,8 +56,8 @@ export async function createInvoice(
   data: CreateInvoiceData
 ) {
   // حساب المبالغ
-  const subtotal = data.subtotalAmount || 0;
-  const discount = data.discountAmount || 0;
+  const subtotal = data.subtotalAmount || (data as any).subtotal || 0;
+  const discount = data.discountAmount || (data as any).discount || 0;
   const totalAmount = data.totalAmount || (subtotal - discount);
   const remainingAmount = totalAmount;
 
