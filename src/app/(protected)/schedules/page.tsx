@@ -13,7 +13,7 @@ export default async function SchedulesPage() {
   }
 
   // التحقق من الصلاحيات - للطبيب والادمن فقط
-  if (session.user.role !== "DOCTOR" && session.user.role !== "ADMIN") {
+  if (session.user.role !== "DOCTOR" && session.user.role !== "RECEPTIONIST") {
     redirect("/");
   }
 

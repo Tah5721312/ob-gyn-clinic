@@ -2,7 +2,7 @@
 import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect } from "react";
-import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft, User as UserIcon, Stethoscope } from "lucide-react";
+import { Search, Calendar, Clock, User, Phone, Plus, CheckCircle, XCircle, AlertCircle, Edit, Trash2, ChevronRight, ChevronLeft, User as UserIcon, Stethoscope, FileText } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { AppointmentListItem } from "@/lib/appointments/types";
@@ -303,6 +303,18 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                         >
                           <User size={18} />
                         </button>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/billing/new?patientId=${appointment.patientId}`);
+                          }}
+                          className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors"
+                          title="فاتورة"
+                        >
+                          <FileText size={18} />
+                        </button>
+
                         {session?.user?.role === "DOCTOR" && (
                           <button
                             onClick={(e) => {

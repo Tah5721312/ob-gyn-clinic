@@ -313,40 +313,6 @@ export default function InvoiceDetailClient() {
             </div>
           </div>
 
-          {/* Invoice Items */}
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-            <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-              <h2 className="text-lg font-bold text-gray-900">بنود الفاتورة</h2>
-              <span className="text-sm text-gray-600">{invoice.items.length} بند</span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-right">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-600">النوع</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-600">الوصف</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-600">الكمية</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-600">سعر الوحدة</th>
-                    <th className="px-5 py-3 text-xs font-semibold text-gray-600">الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {invoice.items.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50/60">
-                      <td className="px-5 py-4 text-sm text-gray-900">
-                        {InvoiceItemTypeLabels[item.itemType as InvoiceItemType] || item.itemType}
-                      </td>
-                      <td className="px-5 py-4 text-sm text-gray-700">{item.description}</td>
-                      <td className="px-5 py-4 text-sm text-gray-700">{item.quantity}</td>
-                      <td className="px-5 py-4 text-sm text-gray-700">{formatCurrency(item.unitPrice)}</td>
-                      <td className="px-5 py-4 text-sm font-semibold text-gray-900">{formatCurrency(item.totalPrice)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           {/* Payments History */}
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
             <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">

@@ -2,56 +2,61 @@
 
 import { useRouter } from 'next/navigation';
 import { BigActionCard } from './shared/BigActionCard';
+import { QuickActionButton } from '@/components/dashboard/shared/QuickActionButton';
+import { Calendar, Users, Search, FileText, Activity, Clock } from 'lucide-react';
 
 export function DoctorWidgets({ session }: { session: any }) {
   const router = useRouter();
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <BigActionCard
-          title="كشف جديد"
-          description="ابدأ كشف مريضة جديدة"
-          icon="🩺"
-          onClick={() => router.push('/visits/new')}
-          color="bg-blue-600"
-        />
-        <BigActionCard
-          title="مرضى اليوم"
-          description="عرض مواعيد اليوم"
-          icon="📅"
-          onClick={() => router.push('/appointments')}
-          color="bg-green-600"
-        />
-        <BigActionCard
-          title="الروشتات"
-          description="عرض الروشتات"
-          icon="💊"
-          onClick={() => router.push('/prescriptions')}
-          color="bg-purple-600"
-        />
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <button
-          onClick={() => router.push('/schedules')}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg text-orange-700 font-medium transition-colors"
-        >
-          <span className="text-xl">⏰</span>
-          <span>الجداول الزمنية</span>
-        </button>
-      </div>
-      
-      {/* إدارة القوالب */}
-      <div className="bg-white rounded-lg shadow-md p-4">
-        <button
-          onClick={() => router.push('/templates')}
-          className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 font-medium transition-colors"
-        >
-          <span className="text-xl">📋</span>
-          <span>إدارة القوالب</span>
-        </button>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
+      <BigActionCard
+        title="مرضى اليوم"
+        description="عرض مواعيد اليوم"
+        icon={<Calendar className="w-8 h-8" />}
+        onClick={() => router.push('/appointments')}
+        color="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 shadow-blue-500/20"
+      />
+
+      <BigActionCard
+        title="بحث عن مريضة"
+        description="البحث في السجلات"
+        icon={<Search className="w-8 h-8" />}
+        onClick={() => router.push('/patients')}
+        color="bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 shadow-emerald-500/20"
+      />
+
+      <BigActionCard
+        title="الروشتات"
+        description="إدارة الروشتات الطبية"
+        icon={<FileText className="w-8 h-8" />}
+        onClick={() => router.push('/prescriptions')}
+        color="bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 shadow-purple-500/20"
+      />
+
+      <BigActionCard
+        title="الزيارات"
+        description="سجل الزيارات الطبية"
+        icon={<Activity className="w-8 h-8" />}
+        onClick={() => router.push('/visits')}
+        color="bg-gradient-to-br from-orange-500 via-amber-600 to-red-600 shadow-orange-500/20"
+      />
+
+      <BigActionCard
+        title="المواعيد"
+        description="إدارة المواعيد"
+        icon={<Clock className="w-8 h-8" />}
+        onClick={() => router.push('/appointments')}
+        color="bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 shadow-indigo-500/20"
+      />
+
+      <BigActionCard
+        title="المرضى"
+        description="قائمة المرضى"
+        icon={<Users className="w-8 h-8" />}
+        onClick={() => router.push('/patients')}
+        color="bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-600 shadow-teal-500/20"
+      />
     </div>
   );
 }

@@ -68,78 +68,45 @@ export function AdminWidgets({ session }: { session: any }) {
   };
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-8'>
       {/* Quick Stats */}
-      <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-6'>
         <StatCard
           title='إجمالي المرضى'
           value={stats.totalPatients.toString()}
           icon={<Users className='w-6 h-6' />}
-          color='bg-blue-500'
+          color='bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 shadow-lg shadow-blue-500/30'
         />
         <StatCard
           title='مواعيد الشهر'
           value={stats.monthlyAppointments.toString()}
           icon={<Calendar className='w-6 h-6' />}
-          color='bg-green-500'
+          color='bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 shadow-lg shadow-green-500/30'
         />
         <StatCard
           title='إيرادات الشهر'
           value={formatCurrency(stats.monthlyRevenue)}
           icon={<FileText className='w-6 h-6' />}
-          color='bg-purple-500'
+          color='bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-600 shadow-lg shadow-purple-500/30'
         />
         <StatCard
           title='فواتير معلقة'
           value={stats.pendingInvoices.toString()}
           icon={<Clock className='w-6 h-6' />}
-          color='bg-red-500'
+          color='bg-gradient-to-br from-rose-500 via-red-600 to-orange-600 shadow-lg shadow-red-500/30'
         />
       </div>
 
-      {/* Quick Actions */}
-      <div className='bg-white rounded-lg shadow-md p-6'>
-        <h2 className='text-2xl font-bold mb-4 text-gray-800'>إدارة النظام</h2>
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-          <QuickActionButton
-            title='إدارة المستخدمين'
-            description='إضافة وتعديل المستخدمين'
-            icon='👥'
-            onClick={() => router.push('/users')}
-          />
-          <QuickActionButton
-            title='لوحة التحكم المالية'
-            description='عرض الإحصائيات المالية'
-            icon='💰'
-            onClick={() => router.push('/financial')}
-          />
-          <QuickActionButton
-            title='التقارير المالية'
-            description='عرض التقارير والإحصائيات'
-            icon='📊'
-            onClick={() => router.push('/reports')}
-          />
-        </div>
-      </div>
 
-      {/* Schedules */}
-      <div className='bg-white rounded-lg shadow-md p-4'>
-        <button
-          onClick={() => router.push('/schedules')}
-          className='w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-100 hover:bg-orange-200 rounded-lg text-orange-700 font-medium transition-colors'
-        >
-          <span className='text-xl'>⏰</span>
-          <span>الجداول الزمنية</span>
-        </button>
-      </div>
 
       {/* Financial Summary */}
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-        <div className='bg-white rounded-lg shadow-md p-6'>
-          <h2 className='text-xl font-bold mb-4 text-gray-800'>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+        <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg transition-shadow duration-300'>
+          <h2 className='text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2'>
+            <span className="w-2 h-8 bg-blue-600 rounded-full inline-block"></span>
             ملخص مالي - هذا الشهر
           </h2>
-          <div className='space-y-3'>
+          <div className='space-y-2'>
             <FinancialRow
               label='إجمالي الإيرادات'
               value={formatCurrency(financialSummary.totalRevenue)}
@@ -160,11 +127,12 @@ export function AdminWidgets({ session }: { session: any }) {
           </div>
         </div>
 
-        <div className='bg-white rounded-lg shadow-md p-6'>
-          <h2 className='text-xl font-bold mb-4 text-gray-800'>
+        <div className='bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg transition-shadow duration-300'>
+          <h2 className='text-2xl font-bold mb-6 text-gray-800 flex items-center gap-2'>
+            <span className="w-2 h-8 bg-purple-600 rounded-full inline-block"></span>
             إحصائيات سريعة
           </h2>
-          <div className='space-y-3'>
+          <div className='space-y-2'>
             <FinancialRow
               label='عدد الزيارات'
               value={quickStats.visits.toString()}

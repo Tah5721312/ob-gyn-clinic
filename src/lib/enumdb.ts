@@ -264,7 +264,7 @@ export enum AppointmentStatus {
 }
 
 export const AppointmentStatusLabels: Record<AppointmentStatus, string> = {
-  [AppointmentStatus.BOOKED]: 'محجوز',
+  [AppointmentStatus.BOOKED]: 'تم الحجز',
   [AppointmentStatus.CONFIRMED]: 'مؤكد',
   [AppointmentStatus.COMPLETED]: 'مكتمل',
   [AppointmentStatus.CANCELLED]: 'ملغي',

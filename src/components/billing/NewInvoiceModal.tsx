@@ -84,7 +84,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPatient || !session?.user?.doctorId) {
+    if (!selectedPatient) {
       alert("يرجى اختيار مريض");
       return;
     }
@@ -99,7 +99,6 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
         body: JSON.stringify({
           invoiceNumber,
           patientId: selectedPatient.id,
-          doctorId: session.user.doctorId,
           invoiceDate: formData.invoiceDate,
           subtotal: parseFloat(formData.subtotal) || 0,
           discount: parseFloat(formData.discount) || 0,
@@ -240,11 +239,11 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  المجموع الفرعي
+                  إجمالي الفاتورة *
                 </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.subtotal}
                   onChange={(e) => setFormData({ ...formData, subtotal: e.target.value })}
@@ -258,7 +257,7 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
                 </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   value={formData.discount}
                   onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
@@ -268,11 +267,11 @@ export function NewInvoiceModal({ isOpen, onClose, onSuccess }: NewInvoiceModalP
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  المبلغ الإجمالي
+                  الإجمالي
                 </label>
                 <input
                   type="number"
-                  step="0.01"
+                  step="1"
                   min="0"
                   required
                   value={formData.totalAmount}

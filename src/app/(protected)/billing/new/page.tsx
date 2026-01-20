@@ -1,9 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth.config";
 import { redirect } from "next/navigation";
-import { InvoiceList } from "@/components/billing/InvoiceList";
-import { prisma } from "@/lib/prisma";
-import { getInvoicesList } from "@/lib/invoices";
+import InvoiceNew from "@/components/billing/InvoiceNew";
 
 export default async function BillingPage() {
   const session = await getServerSession(authOptions);
@@ -15,13 +13,11 @@ export default async function BillingPage() {
   if (session.user.role !== "ADMIN" && session.user.role !== "RECEPTIONIST") {
     redirect("/");
   }
-  // جلب الفواتير - آخر 50 فاتورة
-  const initialInvoices = await getInvoicesList(prisma, {}, { limit: 50 });
 
   return (
     <>
       <main className="container mx-auto p-6 min-h-screen bg-gray-50">
-        <InvoiceList initialInvoices={initialInvoices} />
+        <InvoiceNew />
       </main>
     </>
   );

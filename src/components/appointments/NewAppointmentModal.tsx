@@ -3,8 +3,8 @@ import { apiFetch } from "@/lib/api";
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { Search, User, X, Calendar, Clock, DollarSign } from "lucide-react";
-import { AppointmentStatus, AppointmentStatusLabels, PaymentMethod, PaymentMethodLabels } from "@/lib/enumdb";
+import { Search, User, X, Calendar, Clock } from "lucide-react";
+import { AppointmentStatus, AppointmentStatusLabels } from "@/lib/enumdb";
 
 interface Patient {
   id: number;
@@ -49,19 +49,12 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
     durationMinutes: number;
     notes: string;
     status: string;
-    // Payment fields
-    totalAmount: string;
-    paidAmount: string;
-    paymentMethod: string;
   }>({
     appointmentDate: new Date().toISOString().split('T')[0],
     appointmentTime: "09:00",
     durationMinutes: 30,
     notes: "",
     status: AppointmentStatus.BOOKED,
-    totalAmount: "",
-    paidAmount: "",
-    paymentMethod: PaymentMethod.CASH,
   });
 
   // جلب بيانات الموعد للتعديل
@@ -99,9 +92,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         durationMinutes: appointmentToEdit.durationMinutes || 30,
         notes: appointmentToEdit.notes || "",
         status: (appointmentToEdit.status as string) || AppointmentStatus.BOOKED,
-        totalAmount: "",
-        paidAmount: "",
-        paymentMethod: PaymentMethod.CASH,
       });
     } else if (initialPatientId && isOpen) {
       // جلب بيانات المريض إذا كان initialPatientId موجود
@@ -131,9 +121,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         durationMinutes: 30,
         notes: "",
         status: AppointmentStatus.BOOKED,
-        totalAmount: "",
-        paidAmount: "",
-        paymentMethod: PaymentMethod.CASH,
       });
     }
   }, [isOpen, appointmentToEdit]);
@@ -335,19 +322,13 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
         appointmentTime: appointmentDateTime.toISOString(),
         durationMinutes: formData.durationMinutes,
         notes: formData.notes || null,
-        // Include payment data only if creating new appointment
-        ...(!isEditMode && {
-          totalAmount: formData.totalAmount ? parseFloat(formData.totalAmount) : undefined,
-          paidAmount: formData.paidAmount ? parseFloat(formData.paidAmount) : undefined,
-          paymentMethod: formData.paymentMethod,
-          createdBy: session?.user?.id ? parseInt(session.user.id as string) : undefined,
-        })
       };
 
       if (!isEditMode) {
         body.patientId = selectedPatient.id;
         body.doctorId = doctorId;
         body.status = formData.status;
+        body.createdBy = session?.user?.id ? parseInt(session.user.id as string) : undefined;
       } else {
         body.status = formData.status;
       }
@@ -607,54 +588,6 @@ export function NewAppointmentModal({ isOpen, onClose, onSuccess, initialPatient
               </>
             )}
           </div>
-
-          {/* Payment Section - Only for New Appointments */}
-          {!appointmentToEdit && (
-            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-4">
-              <h3 className="font-semibold text-gray-900 border-b border-gray-200 pb-2 flex items-center">
-                <DollarSign className="inline w-4 h-4 mr-2" />
-                الدفع (اختياري)
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">تكلفة الكشف</label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="0.00"
-                    value={formData.totalAmount}
-                    onChange={(e) => setFormData({ ...formData, totalAmount: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">المدفوع الآن</label>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="0.00"
-                    value={formData.paidAmount}
-                    onChange={(e) => setFormData({ ...formData, paidAmount: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">طريقة الدفع</label>
-                  <select
-                    value={formData.paymentMethod}
-                    onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
-                    className="w-full px-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    {Object.values(PaymentMethod).map((method) => (
-                      <option key={method} value={method}>
-                        {PaymentMethodLabels[method as PaymentMethod]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* الملاحظات */}
           <div>

@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 import { Search, Calendar, DollarSign, FileText, Plus, CheckCircle, XCircle, Clock, Edit, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { InvoiceListItem } from "@/lib/invoices/types";
-import { NewInvoiceModal } from "./NewInvoiceModal";
 import { PaymentStatus, PaymentStatusLabels } from "@/lib/enumdb";
 
 interface InvoiceListProps {
@@ -18,7 +17,6 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
   // جلب الفواتير
@@ -95,7 +93,7 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
           </p>
         </div>
         <button
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => router.push('/billing/new')}
           className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={18} />
@@ -240,27 +238,6 @@ export function InvoiceList({ initialInvoices = [] }: InvoiceListProps) {
           </div>
         )}
       </div>
-
-      {/* Modal إضافة فاتورة جديدة */}
-      <NewInvoiceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          // إعادة تحميل الفواتير
-          const params = new URLSearchParams();
-          if (search) params.append("search", search);
-          if (selectedDate) params.append("invoiceDate", selectedDate);
-          if (statusFilter) params.append("paymentStatus", statusFilter);
-
-          apiFetch(`/api/invoices?${params.toString()}`)
-            .then(res => res.json())
-            .then(result => {
-              if (result.success) {
-                setInvoices(result.data);
-              }
-            });
-        }}
-      />
     </div>
   );
 }

@@ -124,9 +124,11 @@ export default function Navigation() {
     if (role === 'DOCTOR') {
       items.push(
         { href: '/', label: 'الرئيسية', icon: Home },
+        { href: '/schedules', label: 'الجدول الزمني', icon: Calendar },
         { href: '/appointments', label: 'المواعيد', icon: Calendar },
         { href: '/visits', label: 'الزيارات', icon: Activity },
         { href: '/prescriptions', label: 'الروشتات', icon: FileText },
+        { href: '/templates', label: 'القوالب', icon: FileText },
         { href: '/patients', label: 'المرضى', icon: Users },
       );
     }
@@ -134,8 +136,9 @@ export default function Navigation() {
     if (role === 'RECEPTIONIST') {
       items.push(
         { href: '/', label: 'الرئيسية', icon: Home },
+        { href: '/schedules', label: 'الجدول الزمني', icon: Calendar },
         { href: '/appointments', label: 'المواعيد', icon: Calendar },
-        { href: '/payments', label: 'الدفعات', icon: Banknote },
+        // { href: '/payments', label: 'الدفعات', icon: Banknote },
         { href: '/billing', label: 'الفواتير', icon: CreditCard },
         { href: '/patients', label: 'المرضى', icon: Users },
         { href: '/prescriptions', label: 'الروشتات', icon: FileText }
@@ -149,6 +152,7 @@ export default function Navigation() {
         { href: '/payments', label: 'الدفعات', icon: Banknote },
         { href: '/billing', label: 'الفواتير', icon: CreditCard },
         { href: '/financial', label: 'المالية', icon: Activity }, // Using Activity as placeholder for Financial if FileText duplicates
+        { href: '/reports', label: 'التقارير', icon: FileText },
         // { href: '/prescriptions', label: 'الروشتات', icon: FileText },
         { href: '/patients', label: 'المرضى', icon: Users },
         { href: '/users', label: 'المستخدمين', icon: UserCircle },

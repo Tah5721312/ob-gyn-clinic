@@ -24,7 +24,7 @@ export default withAuth(
     const roleAccess: Record<string, string[]> = {
       '/users': ['ADMIN'],
       '/financial': ['ADMIN'],
-      '/payments': ['ADMIN', 'RECEPTIONIST'],
+      '/payments': ['ADMIN'],
       '/billing': ['ADMIN', 'RECEPTIONIST'],
       '/billing/[id]': ['ADMIN', 'RECEPTIONIST'],
       '/visits': ['DOCTOR', 'ADMIN', 'RECEPTIONIST'],
@@ -32,7 +32,8 @@ export default withAuth(
       '/patients': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
       '/prescriptions': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
       '/appointments': ['ADMIN', 'RECEPTIONIST', 'DOCTOR'],
-      '/schedules': ['DOCTOR', 'ADMIN'],
+      '/schedules': ['DOCTOR', 'RECEPTIONIST'],
+      '/templates': ['DOCTOR'],
     };
 
     // التحقق من صلاحيات المسار

@@ -12,6 +12,11 @@ export default async function TemplatesPage() {
     redirect("/signin");
   }
 
+   // التحقق من الصلاحيات - للطبيب فقط
+    if (session.user.role !== "DOCTOR") {
+      redirect("/");
+    }
+
   // جلب القوالب للدكتور الحالي
   const initialTemplates = await getTemplatesList(
     prisma,
