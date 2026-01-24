@@ -63,6 +63,10 @@ model Doctor {
   specialization String  @db.VarChar(100)
   licenseNumber  String  @unique @db.VarChar(50)
   phone          String  @db.VarChar(15)
+  degree         String? @db.VarChar(100) // الدرجة العلمية
+  university     String? @db.VarChar(200) // الجامعة
+  enwan          String? @db.VarChar(500) // عنوان العيادة
+  ReceptionPhone String? @db.VarChar(15) // تليفون الحجز
   isActive       Boolean @default(true)
 
   createdAt DateTime @default(now())

@@ -11,6 +11,10 @@ export interface CreateDoctorData {
   licenseNumber: string;
   phone: string;
   email?: string;
+  degree?: string; // الدرجة العلمية
+  university?: string; // الجامعة
+  enwan?: string; // عنوان العيادة
+  ReceptionPhone?: string; // تليفون الحجز
   consultationFee: number;
   followupFee?: number;
   emergencyFee?: number;
@@ -29,6 +33,10 @@ export interface UpdateDoctorData {
   subSpecialization?: string;
   phone?: string;
   email?: string;
+  degree?: string; // الدرجة العلمية
+  university?: string; // الجامعة
+  enwan?: string; // عنوان العيادة
+  ReceptionPhone?: string; // تليفون الحجز
   consultationFee?: number;
   followupFee?: number;
   emergencyFee?: number;

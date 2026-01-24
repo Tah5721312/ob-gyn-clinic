@@ -2,6 +2,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { AppointmentStatus } from "@/lib/enumdb";
+import { createPrescription } from "@/lib/prescriptions/mutations";
 
 export interface CreateVisitData {
   appointmentId: number;
@@ -90,6 +91,31 @@ export async function createVisit(
       },
     });
 
+    // إنشاء أو تحديث الروشتة للزيارة (كل زيارة يجب أن يكون لها روشتة)
+    try {
+      const existingPrescription = await prisma.prescription.findFirst({
+        where: { visitId: existingVisit.id },
+      });
+
+      // إذا لم تكن هناك روشتة موجودة، إنشاء واحدة جديدة
+      if (!existingPrescription) {
+        await createPrescription(prisma, {
+          visitId: existingVisit.id,
+          notes: data.notes || undefined,
+          items: [], // روشتة بدون أدوية منظمة، فقط ملاحظات
+        });
+      } else {
+        // إذا كانت هناك روشتة موجودة، تحديث الملاحظات
+        await prisma.prescription.update({
+          where: { id: existingPrescription.id },
+          data: { notes: data.notes || null },
+        });
+      }
+    } catch (error) {
+      // في حالة فشل حفظ الروشتة، لا نوقف عملية حفظ الزيارة
+      console.error("Error creating/updating prescription from visit notes:", error);
+    }
+
     return updatedVisit;
   }
 
@@ -125,6 +151,18 @@ export async function createVisit(
       status: AppointmentStatus.COMPLETED,
     },
   });
+
+  // إنشاء روشتة للزيارة (كل زيارة يجب أن يكون لها روشتة)
+  try {
+    await createPrescription(prisma, {
+      visitId: newVisit.id,
+      notes: data.notes || undefined,
+      items: [], // روشتة بدون أدوية منظمة، فقط ملاحظات
+    });
+  } catch (error) {
+    // في حالة فشل حفظ الروشتة، لا نوقف عملية حفظ الزيارة
+    console.error("Error creating prescription from visit notes:", error);
+  }
 
   return newVisit;
 }

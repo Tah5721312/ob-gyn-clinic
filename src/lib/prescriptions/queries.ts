@@ -108,6 +108,7 @@ export async function getPrescriptionById(
       visit: {
         include: {
           patient: true,
+          doctor: true,
         },
       },
       followup: {

@@ -50,11 +50,12 @@ export async function POST(request: NextRequest) {
   try {
     const body: CreatePrescriptionData = await request.json();
 
-    if (!body.items || body.items.length === 0) {
+    // السماح بروشتة بدون أدوية إذا كانت هناك ملاحظات (مثل الروشتات المكتوبة في الزيارة)
+    if ((!body.items || body.items.length === 0) && !body.notes) {
       return NextResponse.json(
         {
           success: false,
-          error: "يجب إضافة على الأقل دواء واحد",
+          error: "يجب إضافة على الأقل دواء واحد أو ملاحظات",
         },
         { status: 400 }
       );

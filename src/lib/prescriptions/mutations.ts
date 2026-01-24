@@ -13,7 +13,7 @@ export async function createPrescription(
       followupId: data.followupId || null,
       notes: data.notes || null,
       items: {
-        create: data.items.map((item) => ({
+        create: (data.items || []).map((item) => ({
           medicationName: item.medicationName,
           dosage: item.dosage,
           frequency: item.frequency,

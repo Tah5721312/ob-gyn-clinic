@@ -27,7 +27,7 @@ export interface CreatePrescriptionData {
   visitId?: number;
   followupId?: number;
   notes?: string;
-  items: PrescriptionItemData[];
+  items?: PrescriptionItemData[];
 }
 
 export interface UpdatePrescriptionData {
