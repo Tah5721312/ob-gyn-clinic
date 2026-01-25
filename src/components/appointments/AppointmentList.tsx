@@ -303,7 +303,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                         >
                           <User size={18} />
                         </button>
-
+                       {session?.user?.role !== "DOCTOR" && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -314,7 +314,7 @@ export function AppointmentList({ initialAppointments = [] }: AppointmentListPro
                         >
                           <FileText size={18} />
                         </button>
-
+                        )}
                         {session?.user?.role === "DOCTOR" && (
                           <button
                             onClick={(e) => {

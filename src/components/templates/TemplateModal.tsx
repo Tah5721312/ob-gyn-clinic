@@ -25,8 +25,7 @@ export function TemplateModal({
 
   const [formData, setFormData] = useState({
     templateName: "",
-    templateType: "زيارة",
-    category: "",
+    templateType: "روشتة",
     content: "",
     isActive: true,
     isFavorite: false,
@@ -55,11 +54,10 @@ export function TemplateModal({
       } else {
         contentText = String(template.content || "");
       }
-      
+
       setFormData({
         templateName: template.templateName,
         templateType: template.templateType,
-        category: template.category || "",
         content: contentText,
         isActive: template.isActive,
         isFavorite: template.isFavorite,
@@ -68,8 +66,7 @@ export function TemplateModal({
       // إعادة تعيين النموذج
       setFormData({
         templateName: "",
-        templateType: "زيارة",
-        category: "",
+        templateType: "روشتة",
         content: "",
         isActive: true,
         isFavorite: false,
@@ -105,7 +102,7 @@ export function TemplateModal({
         setLoading(false);
         return;
       }
-      
+
       // حفظ المحتوى كنص عادي مباشرة (بدون تحويل إلى JSON)
       const cleanedContent = formData.content.trim();
 
@@ -118,7 +115,7 @@ export function TemplateModal({
         doctorId,
         templateName: formData.templateName,
         templateType: formData.templateType,
-        category: formData.category || null,
+        category: null,
         content: cleanedContent, // حفظ كنص عادي مباشرة
         isActive: formData.isActive,
         isFavorite: formData.isFavorite,
@@ -208,43 +205,23 @@ export function TemplateModal({
           </div>
 
           {/* النوع */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="templateType"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                نوع القالب *
-              </label>
-              <input
-                type="text"
-                id="templateType"
-                name="templateType"
-                value={formData.templateType}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="مثال: زيارة، روشتة، تشخيص"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                الفئة (اختياري)
-              </label>
-              <input
-                type="text"
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="مثال: حمل، التهاب"
-              />
-            </div>
+          <div>
+            <label
+              htmlFor="templateType"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              نوع القالب *
+            </label>
+            <input
+              type="text"
+              id="templateType"
+              name="templateType"
+              value={formData.templateType}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              placeholder="روشتة"
+            />
           </div>
 
           {/* المحتوى */}
@@ -276,9 +253,9 @@ export function TemplateModal({
               <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <p className="text-xs font-medium text-blue-900 mb-1">📋 تنسيق الروشتة:</p>
                 <p className="text-xs text-blue-700 font-mono whitespace-pre-line">
-                  اسم الدواء - الجرعة - التكرار - المدة<br/>
-                  اسم الدواء 2 - الجرعة - التكرار - المدة<br/>
-                  <br/>
+                  اسم الدواء - الجرعة - التكرار - المدة<br />
+                  اسم الدواء 2 - الجرعة - التكرار - المدة<br />
+                  <br />
                   ملاحظات إضافية (اختياري)
                 </p>
                 <p className="text-xs text-blue-600 mt-2">

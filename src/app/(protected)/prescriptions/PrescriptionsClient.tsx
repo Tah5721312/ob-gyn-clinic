@@ -1,9 +1,10 @@
 "use client";
 import { apiFetch } from "@/lib/api";
+import { printPrescription } from "@/lib/prescriptions/utils";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Plus, FileText, Calendar, User, Trash2, Edit, Eye } from "lucide-react";
+import { Search, Plus, FileText, Calendar, User, Trash2, Edit, Eye, Printer } from "lucide-react";
 
 interface PrescriptionListItem {
   id: number;
@@ -114,6 +115,22 @@ export default function PrescriptionsClient() {
     return prescription.visit?.patientId || prescription.followup?.pregnancy?.patientId || null;
   };
 
+  const handlePrintPDF = async (prescriptionId: number) => {
+    try {
+      const response = await apiFetch(`/api/prescriptions/${prescriptionId}`);
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        printPrescription(result.data);
+      } else {
+        alert("حدث خطأ أثناء جلب بيانات الروشتة");
+      }
+    } catch (error) {
+      console.error("Error fetching prescription for print:", error);
+      alert("حدث خطأ أثناء جلب بيانات الروشتة");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -167,9 +184,9 @@ export default function PrescriptionsClient() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     المريضة
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     عدد الأدوية
-                  </th>
+                  </th> */}
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     التاريخ
                   </th>
@@ -193,9 +210,9 @@ export default function PrescriptionsClient() {
                         <span className="text-gray-900">{getPatientName(prescription)}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    {/* <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-gray-900">{prescription.itemsCount} دواء</span>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-gray-400" />
@@ -210,6 +227,13 @@ export default function PrescriptionsClient() {
                           title="عرض"
                         >
                           <Eye className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handlePrintPDF(prescription.id)}
+                          className="text-green-600 hover:text-green-900 transition-colors"
+                          title="طباعة PDF"
+                        >
+                          <Printer className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => router.push(`/prescriptions/${prescription.id}`)}
